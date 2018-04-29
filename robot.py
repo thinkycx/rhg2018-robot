@@ -11,6 +11,8 @@ import psutil
 
 download_binary_pass = 1
 
+
+
 CHALLENGE_PATH = "challenges/"
 SLEEP_MAIN_SECOND = 5
 FUZZ_NUM = 4
@@ -70,7 +72,7 @@ class Challenge(object):
 
 class AFLRobot(object):
     """
-    对于ｆｕｚｚ模块的封装类
+    对于fuzz模块的封装类
     """
     def __init__(self, challengeID, bin_path): #  bin_path can be deleted later?
         self._challengeID = challengeID
@@ -124,16 +126,16 @@ class AFLRobot(object):
 
     def start_fuzz(self):
         """
-        根据_bin_path来开始ｆｕｚｚ
-        需要根据ｆｕｚｚ模块二次修改
+        根据_bin_path来开始fuzz
+        需要根据fuzz模块二次修改
         :return:
         """
-        # 创建ｆｕｚｚ对象，暂时用ｓｌｅｅｐ替代
+        # 创建fuzz对象，暂时用ｓｌｅｅｐ替代
         time.sleep(100000)
 
     def get_crash(self):
         """
-        从ｆｕｚｚ模块获取ｃｒａｓ的列表
+        从fuzz模块获取crash的列表
         否则，返回Ｆａｌｓｅ
         :return:
         """
@@ -141,7 +143,7 @@ class AFLRobot(object):
 
     def submit_crash(self):
         """
-        把ｃｒａｓｈ提交给ｅｘｐｌｏｉｔ模块，记录ｃｒａｓｈ　ｈａｓｈ，每次提交不同的值
+        把crash提交给exploit模块，记录crash hash，每次提交不同的值
         :return:
         """
 
@@ -154,8 +156,8 @@ class EXPRobot(object):
     def start_exploit(self):
         """
         需要传递的参数：
-            ｂｉｎpath
-            ｃｒａｓｈ列表
+            bin path
+            crash 列表
         :return:
         """
 
@@ -313,7 +315,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
 
 def check_aflrobot_list(aflrobot_list, challenge_list):
     """
-    判断是否有ＡＦＬＲｏｂｏｔ不需要继续运行了
+    判断是否有AFLRobot不需要继续运行了
         运行时间超过 > MAX_FUZZ_TIME
 
     :param aflrobot_list:
