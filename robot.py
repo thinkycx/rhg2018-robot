@@ -8,8 +8,9 @@ import time
 import multiprocessing
 import os
 import psutil
+import local_server
 
-download_binary_pass = 1
+download_binary_pass = 0
 
 
 
@@ -350,7 +351,14 @@ def check_aflrobot_list(aflrobot_list, challenge_list):
 
 
 
+def start_robot_server():
+    proc = multiprocessing.Process(target=local_server.main )
+    proc.deamon = True
+    proc.start()
+
 if __name__ == "__main__":
+    start_robot_server()
+
     challenge_list = []
     aflrobot_list = []
     exploit_list = []

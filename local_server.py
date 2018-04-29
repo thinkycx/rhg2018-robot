@@ -38,7 +38,7 @@ def make_flags():
     if os.path.exists(flag_foder_path):
         for folder in os.listdir("./local_server/"):
             flag_content = "flag{This is flag for challenge_id %s}" % unicode(folder)
-            flag_path = flag_foder_path + "/flag%s.txt" % unicode(folder)
+            flag_path = flag_foder_path + "flag%s.txt" % unicode(folder)
             with open(flag_path,'w+')  as f :
                 f.write(flag_content)
             print "make_flags in %s" % flag_path
@@ -205,8 +205,12 @@ def api_get_machines_info():
     }
     return json.dumps(t)
 
-
-if __name__ == '__main__':
+def main():
     # make_flags()
+    print "local_server running..."
     app.debug = True
     app.run(host='0.0.0.0',port=5000)
+
+if __name__ == '__main__':
+    main()
+
