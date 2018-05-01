@@ -161,21 +161,14 @@ class EXPRobot(object):
             crash 列表
         :return:
         """
+        pass
 
     def get_exploit(self):
         """
         获取攻击流量
         :return:
         """
-
-
-
-
-
-
-
-
-
+        pass
 
 
 def initial(challenge_list, aflrobot_list):
@@ -357,7 +350,9 @@ def start_robot_server():
     proc.start()
 
 if __name__ == "__main__":
+    # 开启　本地服务器
     start_robot_server()
+    time.sleep(3)
 
     challenge_list = []
     aflrobot_list = []
