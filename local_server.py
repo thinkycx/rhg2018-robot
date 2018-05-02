@@ -8,6 +8,17 @@ import copy
 
 app = Flask(__name__)
 
+
+# 本地题目的下载地址
+@app.route('/')
+def rootcurl():
+    """
+    下载local_server文件夹中所有folder_name文件夹中的bin文件
+    :param folder_name:
+    :return:
+    """
+    return "hello rhg!"
+
 # 本地题目的下载地址
 @app.route('/resources/fileupload/<int:folder_name>/bin')
 def server_download(folder_name):
