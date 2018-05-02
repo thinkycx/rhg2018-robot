@@ -44,6 +44,7 @@ class AFL(object):
     binary: path of the binary which is going be fuzzed
     afl   : path of afl-fuzz binary
     """
+
     def __init__(self, binary, afl='/root/afl-2.52b/afl-fuzz', debug=False):
         self.__binary_path = binary
         self.__afl_fuzz_binary_path = afl
@@ -83,6 +84,10 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
 
     def start(self):
         self._generate_afl_dic()
+        for f in os.listdir(self.__dic_path):
+            filename = os.path.join(self.__dic_path, f)
+            if os.stat(filename).st_size > 128:
+                os.remove(filename) 
         if not os.path.exists(self.__input_path):
             os.mkdir(self.__input_path)
             with open(os.path.join(self.__input_path, 'demo.txt'), 'w') as f:
@@ -90,6 +95,8 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
         if not os.path.exists(self.__output_path):
             os.mkdir(self.__output_path)
         
+        os.chmod(self.__binary_path, 0775)
+                
         if self.__debug:
             print "afl command:", self.__afl_fuzz_binary_path, '-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path, '-m none', '-Q', '--', self.__binary_path
     
@@ -117,15 +124,15 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
 
 if __name__ == '__main__':
 
-    afl = AFL('testcase',afl='/home/thinkycx/fuzz/afl-2.52b' debug=True)
+    afl = AFL('/home/afl/rhg-binary/pwn10/pwn10', debug=True)
     afl.start()
     start_time = time.time()
-    while True:
-        print "time " ,time.time() - start_time
-
     
+    while True:
+        print "afl log...."
+        print "time ", time.time() - start_time
         print "is_alive", afl.is_alive()
-
         print "afl_crashes", afl.crashes()
         time.sleep(20)
     afl.stop()
+    
