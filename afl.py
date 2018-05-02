@@ -2,6 +2,7 @@ import subprocess
 import os
 import stat
 import time
+import re
 
 """
 author: Dlive
@@ -121,10 +122,22 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
                 crashes.append(os.path.join(crashes_path, crash))
         return crashes
         
+def check_docker():
+    result = subprocess.check_output('cat /proc/1/sched | head -n 1', shell=True)
+    pattern = re.compile('[0-9]+')
+    pid = int(pattern.findall(result)[0])
+    if pid > 1:
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
-
-    afl = AFL('/home/afl/rhg-binary/pwn10/pwn10', debug=True)
+    if check_docker():
+        afl_path = '/root/afl-2.52b/afl-fuzz'
+    else:
+        afl_path = '/home/thinkycx/fuzz/afl-2.52b/afl-fuzz'
+    file_name = '/root/challenges/2/bin'
+    afl = AFL(file_name, afl=afl_path, debug=True)
     afl.start()
     start_time = time.time()
     
