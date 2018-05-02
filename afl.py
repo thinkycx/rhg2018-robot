@@ -1,6 +1,7 @@
 import subprocess
 import os
 import stat
+import time
 
 """
 author: Dlive
@@ -43,7 +44,7 @@ class AFL(object):
     binary: path of the binary which is going be fuzzed
     afl   : path of afl-fuzz binary
     """
-    def __init__(self, binary, afl='/home/afl/afl-2.52b/afl-fuzz', debug=False):
+    def __init__(self, binary, afl='/root/afl-2.52b/afl-fuzz', debug=False):
         self.__binary_path = binary
         self.__afl_fuzz_binary_path = afl
         self.__afl_dirname = os.path.dirname(afl)
@@ -115,11 +116,16 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
         
 
 if __name__ == '__main__':
-    afl = AFL('/home/afl/rhg-afl/testcase', debug=False)
+
+    afl = AFL('testcase',afl='/home/thinkycx/fuzz/afl-2.52b' debug=True)
     afl.start()
+    start_time = time.time()
+    while True:
+        print "time " ,time.time() - start_time
+
     
-    raw_input('#')
-    
-    print afl.is_alive()
+        print "is_alive", afl.is_alive()
+
+        print "afl_crashes", afl.crashes()
+        time.sleep(20)
     afl.stop()
-    print afl.crashes()
