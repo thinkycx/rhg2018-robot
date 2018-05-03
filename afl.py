@@ -136,12 +136,12 @@ if __name__ == '__main__':
         afl_path = '/root/afl-2.52b/afl-fuzz'
     else:
         afl_path = '/home/thinkycx/fuzz/afl-2.52b/afl-fuzz'
-    max_run_time = 600
-    start_time = time.time()
-    for i in range(1000000000000000000000):
+    max_run_time = 60
+    for i in range(10000):
+        start_time = time.time()
         i = i%9+2
         file_name = './challenges/{}/bin'.format(i)
-        afl = AFL(file_name, afl=afl_path, debug=False )
+        afl = AFL(file_name, afl=afl_path, debug=True )
         afl.start()
         while True:
             if time.time() - start_time >max_run_time:
