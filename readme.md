@@ -26,23 +26,36 @@ fuzz模块：
 
 
 # 文件说明
-- api.py
-- config.py
-- local_server.py
-- robot.py
-- requirements.txt
-- /challenges   下载保存的文件，fuzz和exploit运行的文件夹
-- /local_server 本地服务器模拟
+- api.py   　　　封装了和题目交互的api
+- config.py　　　配置文件
+- local_server.py　本地模拟的服务器、用来下载本地题目、测试本地题目是否正确
+- robot.py　　　　　　核心框架
+- requirements.txt　需要的依赖包
+- /challenges   下载保存的文件，子目录为challengeid 标识的文件夹，也是fuzz和exploit运行的文件夹
+- /local_server 本地服务器模拟的文件夹，保存本地测试的题目
 
 # 本地服务器模拟
     local_server.py　实现了一个简单的比赛服务平台，用来本地测试robot。可以布置测试题目、验证flag是否正确（注意运行的环境得在主办方提供的虚拟机中）。
 ## 如何发布题目
 　　　在local_server新建文件夹，以challengeid命名，题目文件名为bin
 
+# docker
+启动image时需要 --privileged
+启动后　echo core >/proc/sys/kernel/core_pattern
+docker cp 拷贝文件后，测afl.py
+
+
+
+
+
+
 # 其他　
 其他需要考虑的点：
 - 获取积分后，如果分数太低，考虑放弃某些题目？
 - 中间会间断一次，如何保证时间关闭后程序继续fuzz，在开启接口后自动提交。
+
+
+
 
 # TIMELINE
 - 20180415 api.py 实现对网站函数的封装

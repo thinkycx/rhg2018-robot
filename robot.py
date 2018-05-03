@@ -9,14 +9,15 @@ import multiprocessing
 import os
 import psutil
 import local_server
+import afl
+import config
 
 download_binary_pass = 0
 
 
-
 CHALLENGE_PATH = "challenges/"
 SLEEP_MAIN_SECOND = 5
-FUZZ_NUM = 4
+FUZZ_NUM = 2
 MAX_FUZZ_TIME = 60
 
 
@@ -86,6 +87,8 @@ class AFLRobot(object):
         self.proc = None
         self.pid = None
 
+        self.afl_obj = None
+
     def get_id(self):
         return self._challengeID
 
@@ -132,7 +135,11 @@ class AFLRobot(object):
         :return:
         """
         # 创建fuzz对象，暂时用ｓｌｅｅｐ替代
-        time.sleep(100000)
+        self.afl_obj = afl.AFL(binary=self._bin_path, afl=config.AFLPATH, debug=False)
+        self.afl_obj.start()
+
+    def stop_fuzz(self):
+        self.afl_obj.stop()
 
     def get_crash(self):
         """
@@ -140,6 +147,7 @@ class AFLRobot(object):
         否则，返回Ｆａｌｓｅ
         :return:
         """
+        self.afl_obj.crashes()
         return False
 
     def submit_crash(self):
@@ -153,6 +161,8 @@ class EXPRobot(object):
     def __init__(self, challengeID, bin_path):
         self._challengeID = challengeID
         self._bin_path = bin_path
+
+        self.pid = None
 
     def start_exploit(self):
         """
@@ -171,7 +181,7 @@ class EXPRobot(object):
         pass
 
 
-def initial(challenge_list, aflrobot_list):
+def initial_list(challenge_list, aflrobot_list):
     """
     download challenges and initial challenge_list
     :param challenge_list:
@@ -214,17 +224,17 @@ def initial(challenge_list, aflrobot_list):
     print "\t[+] initial challenge_list success..."
     print "\t[-] challenge_list %s " % challenge_list
 
-def worker_fuzz(aflrobot):
-    """
-    worker_fuzz是新开启的进程将要执行的函数
-    新建一个AFLRobot对象开始FUZZ
-    :param aflrobot: 当前task的状态，根据task_dict_content修改而来
-    :return:
-    """
-    pid = os.getpid()
-    print "\t\t\t [+]work_fuzz %d ..." % pid
-    aflrobot.set_pid(pid)
-    aflrobot.start_fuzz()
+# def worker_fuzz(aflrobot):
+#     """
+#     worker_fuzz是新开启的进程将要执行的函数
+#     新建一个AFLRobot对象开始FUZZ
+#     :param aflrobot: 当前task的状态，根据task_dict_content修改而来
+#     :return:
+#     """
+#     pid = os.getpid()
+#     print "\t\t\t [+]work_fuzz %d ..." % pid
+#     aflrobot.set_pid(pid)
+#     aflrobot.start_fuzz()
 
 
 def get_challenge_by_id(id, challenge_list):
@@ -296,11 +306,12 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
                 aflrobot.set_start_time(time.time())
                 aflrobot.add_running_times()
 
-                proc = multiprocessing.Process(target=worker_fuzz, args=(aflrobot,))
-                proc.deamon = True
-                aflrobot.set_proc(proc)
+                # proc = multiprocessing.Process(target=worker_fuzz, args=(aflrobot,))
+                # proc.deamon = True
+                # aflrobot.set_proc(proc)
+                aflrobot.start_fuzz()
 
-                proc.start()
+                # proc.start()
 
                 running_robot_num = len(get_running_aflrobot_list(aflrobot_list))
             print "\t\t [+] now running_robot_num  is  %d " % running_robot_num
@@ -327,20 +338,24 @@ def check_aflrobot_list(aflrobot_list, challenge_list):
             # 后期加入数据恢复功能
             # stop this aflrobot
 
-            proc = aflrobot.get_proc()
-            if proc.is_alive():
-                print "\t\t Terminating %s" % proc
-                proc.terminate()
+            # proc = aflrobot.get_proc()
+            # if proc.is_alive():
 
-                aflrobot.set_running_status(False)
-                aflrobot.add_total_time(running_time)
+            # print "\t\t Terminating %s" % proc
+            # raw_input("terminate afl stop()-----------")
+            aflrobot.stop_fuzz()
+            # raw_input("terminate aflrobot------------")
+            # proc.terminate()
 
-                aflrobot.set_start_time(None)
-                aflrobot.set_pid(None)
-                aflrobot.set_proc(None)
+            aflrobot.set_running_status(False)
+            aflrobot.add_total_time(running_time)
 
-                challenge = get_challenge_by_id(id, challenge_list)
-                challenge.set_fuzz_status(False)
+            aflrobot.set_start_time(None)
+            # aflrobot.set_pid(None)
+            # aflrobot.set_proc(None)
+
+            challenge = get_challenge_by_id(id, challenge_list)
+            challenge.set_fuzz_status(False)
 
 
 
@@ -351,34 +366,32 @@ def start_robot_server():
 
 if __name__ == "__main__":
     # 开启　本地服务器
-    start_robot_server()
-    time.sleep(3)
+    # 本地服务器需要手工开启　
+    #start_robot_server()
+    #time.sleep(3)
 
     challenge_list = []
     aflrobot_list = []
     exploit_list = []
 
     print "[1] INITIAL...."
-    initial(challenge_list, aflrobot_list)
+    initial_list(challenge_list, aflrobot_list)
 
     while True:
-        print "\n" * 4
         print "-"*100
         print "[2] FUZZ...."
         start_new_aflrobot(aflrobot_list, challenge_list)
         check_aflrobot_list(aflrobot_list, challenge_list)
 
+        # print "[3] EXPLOIT...."
+        # #start_new_exprobot(exploit_list, challenge_list)
+        # #check_exprobot_list(exploit_list, challenge_list)
+        #
+        #
+        # print "[4] SUBMIT...."
 
-        print "[3] EXPLOIT...."
-        #start_new_exprobot(exploit_list, challenge_list)
-        #check_exprobot_list(exploit_list, challenge_list)
 
-
-        print "[4] SUBMIT...."
-
-
-        print "\t MAIN sleep %d seconds " % SLEEP_MAIN_SECOND
-        time.sleep(SLEEP_MAIN_SECOND)
+        # time.sleep(SLEEP_MAIN_SECOND)
 
 
 
