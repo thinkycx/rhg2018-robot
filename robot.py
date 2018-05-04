@@ -11,7 +11,7 @@ import psutil
 import local_server
 import afl
 import config
-from pwn import *
+# from pwn import *
 
 download_binary_pass = 1
 
@@ -21,7 +21,7 @@ SLEEP_MAIN_SECOND = 5
 FUZZ_NUM = 4
 MAX_FUZZ_TIME = 120
 MAX_EXPLOIT_TIME = 240
-context.log_level = 'debug'
+# context.log_level = 'debug'
 
 class Challenge(object):
     """
@@ -489,10 +489,10 @@ def start_new_expflow(exprobot_list, challenge_list):
             print "\t\t [*]EXPLOIT challenge_id > %d , crashes > %s" % (id, exp_flow)
             challenge = get_challenge_by_id(id, challenge_list)
             ip, port = challenge.get_ip_port()
-            io = remote(ip, port)
-            io = send(exp_flow)
-            payload = "cat %s" % challenge
-            flag = io.sendline(payload)
+            # io = remote(ip, port)
+            # io = send(exp_flow)
+            # payload = "cat %s" % challenge
+            # flag = io.sendline(payload)
             print "\t\t [*]flag is", flag
             if flag:
                 submit_status = api.sub_answer(flag)
