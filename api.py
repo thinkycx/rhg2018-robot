@@ -38,6 +38,23 @@ def get_machines_info():
     except Exception as e:
         return False
 
+
+def sub_answer(flag):
+    try:
+        data = "answer=\"%s\"" % flag
+        r = requests.post(url=SUB_ANSWER, auth=(USER,PWD), data = data, headers=headers)
+        status =  r.json()['status']
+        # 成功：{"status":1,"msg":"success","questionScore":128,"questionRank":1}//questionScore:得分,questionRank:本次提交题目排名
+        # 失败：{"status":0,"msg":"提示信息"}
+        if status == 0 :
+            return False
+        elif status == 1:
+            return True
+    except Exception as e:
+        return False
+
+
+
 def reset_question():
     try:
         data = {
