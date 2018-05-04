@@ -95,6 +95,8 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
                 f.write('DEMO')
         if not os.path.exists(self.__output_path):
             os.mkdir(self.__output_path)
+        else:
+            self.__input_path = '-'
 
         os.chmod(self.__binary_path, 0775)
 
