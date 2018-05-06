@@ -14,7 +14,7 @@ URL = config.URL
 GET_QUESTION_STATUS = URL + "/api/get_question_status"
 GET_MACHINES_INFO = URL + "/api/get_machines_info"
 RESET_QUESTION = URL + "/api/reset_question"
-SUB_ANSWER = URL + "/api/sub_answer "
+SUB_ANSWER = URL + "/api/sub_answer"
 
 headers = {'User-Agent': 'curl / 7.47.0'}
 
@@ -23,7 +23,7 @@ headers = {'User-Agent': 'curl / 7.47.0'}
 #
 def get_question_status():
     try:
-        r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers)
+        r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
         return r.json()['AiChallenge']
     except Exception as e:
         logging.error(e)
@@ -41,8 +41,10 @@ def get_machines_info():
 
 def sub_answer(flag):
     try:
-        data = "answer=\"%s\"" % flag
-        r = requests.post(url=SUB_ANSWER, auth=(USER,PWD), data = data, headers=headers)
+        data = {"answer":flag} # Content-Type: application/x-www-form-urlencoded
+        print data
+        r = requests.post(url=SUB_ANSWER, auth=(USER,PWD), data=data, headers=headers)
+        print r.json()
         status =  r.json()['status']
         # 成功：{"status":1,"msg":"success","questionScore":128,"questionRank":1}//questionScore:得分,questionRank:本次提交题目排名
         # 失败：{"status":0,"msg":"提示信息"}
@@ -51,6 +53,7 @@ def sub_answer(flag):
         elif status == 1:
             return True
     except Exception as e:
+        print e
         return False
 
 
@@ -75,6 +78,7 @@ def make_folder(target_path):
 
 
 if __name__ == "__main__":
-    get_machines_info()
+    sub_answer("flag{f5218bf1-3d7f-11e8-98ae-5254003be4ba}")
+
 
 

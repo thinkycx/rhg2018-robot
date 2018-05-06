@@ -11,17 +11,16 @@ import psutil
 import local_server
 import afl
 import config
-# from pwn import *
+from pwn import *
 
 download_binary_pass = 1
 
-
 CHALLENGE_PATH = "challenges/"
 SLEEP_MAIN_SECOND = 5
-FUZZ_NUM = 4
+FUZZ_NUM = 2
 MAX_FUZZ_TIME = 120
 MAX_EXPLOIT_TIME = 240
-# context.log_level = 'debug'
+context.log_level = 'debug'
 
 class Challenge(object):
     """
@@ -103,10 +102,12 @@ class Robot(object):
     def set_start_time(self, time):
         self.start_time = time
 
-    def get_total_time(self):
-        return self.total_time
+    def get_running_time(self):
+        running_time = time.time() - self.start_time
+        return running_time
 
-    def add_total_time(self,running_time):
+    def add_total_time(self):
+        running_time = time.time() - self.start_time
         self.total_time += running_time
 
     def get_running_times(self):
@@ -143,12 +144,18 @@ class AFLRobot(Robot):
         需要根据fuzz模块二次修改
         :return:
         """
-        # 创建fuzz对象，暂时用sleep替代
-        self.afl_obj = afl.AFL(binary=self._bin_path, afl=config.AFLPATH, debug=True)
+        self.set_running_status(True)
+        self.set_start_time(time.time())
+        self.running_times += 1
+
+        self.afl_obj = afl.AFL(binary=self._bin_path, afl=config.AFLPATH, debug=False)
         self.afl_obj.start()
 
     def stop_fuzz(self):
         self.afl_obj.stop()
+        self.set_running_status(False)
+        self.add_total_time()
+        self.set_start_time(None)
 
     def get_crashes(self):
         return self.afl_obj.crashes()
@@ -180,8 +187,10 @@ class EXPRobot(Robot):
             crash 列表
         :return:
         """
+        # self.exp_obj = EXP()
+        # exp_obj.start_exploit()
         print "\t\t exploiting now!"
-        sleep(1000)
+        time.sleep(1000)
 
 
     def get_exploit(self):
@@ -189,7 +198,13 @@ class EXPRobot(Robot):
         获取攻击流量
         :return:
         """
-        return "This is exploit flow."
+        # self.exp_obj.get_exploit()
+        try:
+            with open("./panda@rhg/input_exp") as f:
+                return f.read()
+        except Exception as e:
+            print e
+
 
 
     def stop_exploit(self):
@@ -287,6 +302,11 @@ def get_running_exprobot_list(exprobot_list):
             running_exprobot_list.append(exprobot)
     return running_exprobot_list
 
+def get_id_list_from_aflrobot_list(aflrobot_list):
+    id_list = []
+    for r in aflrobot_list:
+        id_list.append(r.get_id())
+    return id_list
 
 def start_new_aflrobot(aflrobot_list, challenge_list):
     """
@@ -300,7 +320,8 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
     running_aflrobot_num = len(running_aflrobot_list)
 
     if running_aflrobot_num >= FUZZ_NUM:
-        print "\t\t [!] running_robot_number > %d , running_robot_list >  %s" % (running_aflrobot_num, running_aflrobot_list)
+        id_list = get_id_list_from_aflrobot_list(running_aflrobot_list)
+        print "\t\t [!] running_robot_number -> %d , running_robot_list ->  %s" % (running_aflrobot_num, id_list)
     else:
         has_fuzz = 0
         while running_aflrobot_num < FUZZ_NUM:
@@ -336,9 +357,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
 
                 # 创建进程运行AFLRobot机器人
                 aflrobot = get_aflrobot_by_id(max_id, aflrobot_list)
-                aflrobot.set_running_status(True)
-                aflrobot.set_start_time(time.time())
-                aflrobot.add_running_times()
+
 
                 # proc = multiprocessing.Process(target=worker_fuzz, args=(aflrobot,))
                 # proc.deamon = True
@@ -349,8 +368,9 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
                 # proc.start()
             running_aflrobot_list = get_running_aflrobot_list(aflrobot_list)
             running_aflrobot_num = len(running_aflrobot_list)
-            print "\t\t [!] running_robot_number > %d , running_robot_list >  %s" % (running_aflrobot_num, running_aflrobot_list)
 
+            id_list = get_id_list_from_aflrobot_list(running_aflrobot_list)
+            print "\t\t [!] running_robot_number > %d , running_robot_list >  %s" % (running_aflrobot_num, id_list)
 
 
 def check_aflrobot_list(aflrobot_list, challenge_list):
@@ -365,7 +385,7 @@ def check_aflrobot_list(aflrobot_list, challenge_list):
     running_aflrobot_list = get_running_aflrobot_list(aflrobot_list)
     for aflrobot in running_aflrobot_list:
         id = aflrobot.get_id()
-        running_time =  time.time() - aflrobot.get_start_time()
+        running_time =  aflrobot.get_running_time()
         if running_time > MAX_FUZZ_TIME:
             print "\t [*] check_aflrobot_list"
             print "\t\t DELETE challenge %d ,running_time is %d" % (id, running_time)
@@ -381,10 +401,7 @@ def check_aflrobot_list(aflrobot_list, challenge_list):
             # raw_input("terminate aflrobot------------")
             # proc.terminate()
 
-            aflrobot.set_running_status(False)
-            aflrobot.add_total_time(running_time)
 
-            aflrobot.set_start_time(None)
             # aflrobot.set_pid(None)
             # aflrobot.set_proc(None)
 
@@ -412,7 +429,7 @@ def start_new_exprobot(aflrobot_list, exprobot_list, challenge_list):
         crashes = aflrobot.get_crashes()
 
         if crashes != []:
-            print "\t\t [*]CRASHES challenge_id > %d , crashes > %s" %(id,crashes)
+            print "\t\t [*]CRASHES challenge_id -> %d , crashes -> %s" %(id,crashes)
             # 修改challenge exploit的状态
             challenge = get_challenge_by_id(id, challenge_list)
             challenge.set_exploit_status(True)
@@ -426,7 +443,7 @@ def start_new_exprobot(aflrobot_list, exprobot_list, challenge_list):
             exprobot.set_start_time(time.time())
             exprobot.add_running_times()
 
-            proc = multiprocessing.Process(target=worker_exploit, args=(exprobot ))
+            proc = multiprocessing.Process(target=worker_exploit, args=(exprobot, ))
             proc.deamon = True
             exprobot.set_proc(proc)
 
@@ -446,7 +463,7 @@ def check_exprobot_list(exprobot_list, challenge_list):
     running_exprobot_list = get_running_exprobot_list(exprobot_list)
     for exprobot in running_exprobot_list:
         id = exprobot.get_id()
-        running_time = time.time() - exprobot.get_start_time()
+        running_time = exprobot.get_running_time()
         if running_time > MAX_EXPLOIT_TIME:
             print "\t [*] check_exprobot_list"
             print "\t\t DELETE challenge %d ,running_time is %d" % (id, running_time)
@@ -463,7 +480,7 @@ def check_exprobot_list(exprobot_list, challenge_list):
             proc.terminate()
 
             exprobot.set_running_status(False)
-            exprobot.add_total_time(running_time)
+            exprobot.add_total_time()
 
             exprobot.set_start_time(None)
             # aflrobot.set_pid(None)
@@ -473,7 +490,7 @@ def check_exprobot_list(exprobot_list, challenge_list):
             challenge.set_exploit_status(False)
 
 
-def start_new_expflow(exprobot_list, challenge_list):
+def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
     """
     1. 如果exprobot产生了流量，就尝试用这个流量打远程，返回ｆｌａｇ
     2. 提交flag, 如果成功修改submit_status
@@ -486,47 +503,64 @@ def start_new_expflow(exprobot_list, challenge_list):
         id = exprobot.get_id()
         exp_flow = exprobot.get_exploit()
         if exp_flow:
-            print "\t\t [*]EXPLOIT challenge_id > %d , crashes > %s" % (id, exp_flow)
+            print "\t\t [*] get exp_flow challenge_id -> %d , crashes -> %s" % (id, exp_flow)
             challenge = get_challenge_by_id(id, challenge_list)
             ip, port = challenge.get_ip_port()
-            # io = remote(ip, port)
-            # io = send(exp_flow)
-            # payload = "cat %s" % challenge
-            # flag = io.sendline(payload)
-            print "\t\t [*]flag is", flag
+
+            io = remote(ip, port)
+            print io.recv()
+            io.sendline(exp_flow)
+            io.recv()
+            payload = "cat /home/flag%s.txt" % challenge.get_id()
+            io.sendline(payload)
+            flag = io.recvline()
+            # replace '\n' in the flag end
+            if '\n' in flag:
+                flag = flag.replace('\n','')
+            print "\t\t [*]flag is...", flag
             if flag:
                 submit_status = api.sub_answer(flag)
                 print "\t\t [*]submit status is ", submit_status
                 if submit_status:
+                    # 提交flag成功
+                    # 设置exprobot的状态
+
+                    exprobot.stop_exploit()
+                    exprobot.set_running_status(False)
+
+                    # 设置aflrobot的状态
+                    aflrobot = get_aflrobot_by_id(id, aflrobot_list)
+                    aflrobot.stop_fuzz()
+
+
+                    # 设置challenge的状态
+                    challenge = get_challenge_by_id(id, challenge_list)
+                    challenge.set_fuzz_status(False)
+                    challenge.set_exploit_status(False)
                     challenge.set_submit_status(True)
+
+
             else:
                 print "flag is none!"
 
 
 
 
-def check_submit_status(aflrobot_list, exprobot_list, challenge_list):
-    """
-    kill  aflrobot_list exprobot_list if  challenge_id submit_status is True
-    :param aflrobot_list:
-    :param exprobot_list:
-    :param challenge_list:
-    :return:
-    """
-    for c in challenge_list:
-        if c.get_submit_status == True:
-            print "[*] challenge_id submit_status is True ,killing....."
-            id = c.get_id()
-
-            running_aflrobot_list = get_running_aflrobot_list(id, aflrobot_list)
-            aflrobot = get_aflrobot_by_id(id, running_aflrobot_list)
-            aflrobot.stop_fuzz()
-
-            running_exprobot_list = get_running_exprobot_list(id, exprobot_list)
-            exprobot = get_exprobot_by_id(id, running_exprobot_list)
-            exprobot.stop_exploit()
-
-
+# def check_submit_status(aflrobot_list, exprobot_list, challenge_list):
+#     """
+#     kill  aflrobot_list exprobot_list if  challenge_id submit_status is True
+#     :param aflrobot_list:
+#     :param exprobot_list:
+#     :param challenge_list:
+#     :return:
+#     """
+#
+#     for c in challenge_list:
+#         if c.get_submit_status == True:
+#             print "[*] challenge_id submit_status is True ,killing....."
+#             id = c.get_id()
+#
+#             running_aflrobot_list = get_running_aflrobot_list(id, aflrobot_list)
 
 
 
@@ -550,23 +584,18 @@ if __name__ == "__main__":
     initial_list(challenge_list, aflrobot_list, exprobot_list)
 
     while True:
-        print "-"*60
-        print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        print "-"*30, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "-"*30
         print "[2] FUZZ...."
         start_new_aflrobot(aflrobot_list, challenge_list)
         check_aflrobot_list(aflrobot_list, challenge_list)
-
-
 
         print "[3] EXPLOIT...."
         start_new_exprobot(aflrobot_list, exprobot_list, challenge_list)
         check_exprobot_list(exprobot_list, challenge_list)
 
-
         print "[4] SUBMIT...."
-        start_new_expflow(exprobot_list, challenge_list)
-        check_submit_status(aflrobot_list, exprobot_list, challenge_list)
-
+        start_new_expflow(exprobot_list, challenge_list, aflrobot_list)
+        # check_submit_status(aflrobot_list, exprobot_list, challenge_list)
 
         time.sleep(SLEEP_MAIN_SECOND)
 
