@@ -110,6 +110,7 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
     def stop(self):
         if self.is_alive():
             self.__afl_process.kill()
+            self.__afl_process.wait()
 
     def is_alive(self):
         return self.__afl_process.poll() is None
@@ -138,20 +139,26 @@ if __name__ == '__main__':
         afl_path = '/root/afl-2.52b/afl-fuzz'
     else:
         afl_path = '/home/thinkycx/fuzz/afl-2.52b/afl-fuzz'
-    max_run_time = 60
+    max_run_time = 600
     for i in range(10000):
         start_time = time.time()
         i = i%9+2
         file_name = './challenges/{}/bin'.format(i)
-        afl = AFL(file_name, afl=afl_path, debug=True )
+        afl = AFL(file_name, afl=afl_path, debug=False )
         afl.start()
+        crashes = afl.crashes()
+        print file_name
+        print "crashes ", crashes
         while True:
             if time.time() - start_time >max_run_time:
                 break
-            print "...afl log...."
-            print "time ", time.time() - start_time
-            print "is_alive", afl.is_alive()
-            print "afl_crashes", afl.crashes()
+
             time.sleep(20)
+            tmp = afl.crashes()
+            if crashes != tmp:
+                print "time ", time.time() - start_time, "is_alive", afl.is_alive()
+                print "crashes ", crashes
+                crashes = tmp
+
         afl.stop()
 
