@@ -18,11 +18,11 @@
     下载50道题目到本地challenges文件夹下
 
 fuzz模块：
-    调用AFL模块对文件夹下每个文件进行fuzz
+    调用AFL模块对文件夹下每个文件进行fuzz，如果产生新的crash就调用利用模块
 
 
 漏洞利用模块：
-    challengeID标识
+    根据fuzz产生的crash来利用
 
 提交flag：
     提交flag到challenge中的服务器，获取flag后提交，
@@ -60,7 +60,5 @@ docker cp 拷贝文件后，测afl.py
 - 中间会间断一次，如何保证时间关闭后程序继续fuzz，在开启接口后自动提交。
 
 
-
-
-# TIMELINE
-- 20180415 api.py 实现对网站函数的封装
+- 20180505 binary_path　是否需要在另外两个类中？
+- 获取了流量之后，交互时有问题

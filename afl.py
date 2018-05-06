@@ -144,19 +144,25 @@ if __name__ == '__main__':
         start_time = time.time()
         i = i%9+2
         file_name = './challenges/{}/bin'.format(i)
-        afl = AFL(file_name, afl=afl_path, debug=False )
+        afl = AFL(file_name, afl=afl_path, debug=True )
         afl.start()
         crashes = afl.crashes()
         print file_name
         print "crashes ", crashes
+
+        crashes = afl.crashes()
+        print file_name
+        print "crashes ", crashes
+
         while True:
             if time.time() - start_time >max_run_time:
                 break
 
             time.sleep(20)
+            print  "is_alive", afl.is_alive()
             tmp = afl.crashes()
             if crashes != tmp:
-                print "time ", time.time() - start_time, "is_alive", afl.is_alive()
+                print "time ", time.time() - start_time
                 print "crashes ", crashes
                 crashes = tmp
 
