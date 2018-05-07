@@ -20,6 +20,7 @@ FUZZ_NUM = 2
 # EXPLOIT_NUM = 1
 MAX_FUZZ_TIME = 120
 MAX_EXPLOIT_TIME = 240
+AFL_DEBUG = False
 # context.log_level = 'debug'
 
 FUZZ_MAKR = 1
@@ -174,7 +175,7 @@ class AFLRobot(Robot):
         self.start_time = time.time()
         self.running_count += 1
 
-        self.afl_obj = afl.AFL(binary=self._bin_path, afl=config.AFLPATH, debug=False)
+        self.afl_obj = afl.AFL(binary=self._bin_path, afl=config.AFLPATH, debug=AFL_DEBUG)
         self.afl_obj.start()
         print "\t\t [*] AFLRobot.start_fuzz  challenge %d ,running_count is %d" % (self._challengeID, self.running_count )
 
@@ -264,7 +265,7 @@ class EXPRobot(Robot):
             with open("./panda@rhg/input_exp") as f:
                 tmp_expflow  = f.read()
             if self.expflow == tmp_expflow:
-                print "\t\t [*]Exprobot.get_exploit_flow  expflow is same..."
+                print "\t\t [*]Exprobot.get_exploit_flow  challenge_id -> %d , expflow is same..." % self._challengeID
                 return False
             else:
                 self.expflow = tmp_expflow
@@ -276,6 +277,10 @@ class EXPRobot(Robot):
 
 def initial_list(challenge_list, aflrobot_list, exprobot_list):
     """
+
+
+
+
     download challenges and initial challenge_list aflrobot_list exprobot_list
     :param challenge_list:
     :param aflrobot_list:
@@ -432,7 +437,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
 
             running_aflrobot_num = len(running_aflrobot_list)
             id_list = get_id_list_from_aflrobot_list(running_aflrobot_list)
-            print "\t\t [!] running_robot_number > %d , running_robot_list >  %s" % (running_aflrobot_num, id_list)
+            print "\t\t [!] running_AFLRobot_number > %d , running_AFLRobot_list >  %s" % (running_aflrobot_num, id_list)
 
 
 def check_aflrobot_list(aflrobot_list, challenge_list):
@@ -545,9 +550,11 @@ def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
     running_exprobot_list = get_running_exprobot_list(exprobot_list)
     print  running_exprobot_list
     for exprobot in running_exprobot_list:
+    # for exprobot in exprobot_list:
         id = exprobot.get_id()
         exp_flow = exprobot.get_exploit_flow()
-        if exp_flow:
+        # if exp_flow or exprobot.get_id() == 2: # test shellcode
+        if exp_flow :
             print "\t\t [*] start_new_expflow # challenge_id -> %d , exp_flow ..." % (id)
 
             challenge = get_challenge_by_id(id, challenge_list)
@@ -558,41 +565,54 @@ def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
 
             # 流量交互有很多问题　待沟通
             try:
-                io = remote(ip, iiport)
-                print io.recv()
+                flag = ''
+                pos1 = "Dubh3-2018a-rhg"
+                pos2 = "Dubh3-2018b-rhg"
+                payload = "cat %s" % flag_path
+                padding = "echo %s&& %s && echo %s"
+                payload = padding % (pos1, payload, pos2)
+
+                io = remote(ip, port)
                 io.sendline(exp_flow)
-                io.recv()
-                payload = "cat %s" %  flag_path
+                tmp_data = io.recv()
                 io.sendline(payload)
-                flag = io.recvline()
-                # replace '\n' in the flag end
+                data = io.recv()
+                print data
+
+                string = pos1 + "([\s\S]*)" + pos2
+                pattern = re.compile(string)
+                result = re.match(pattern, data)
+                flag = result.string.replace(pos1, '').replace(pos2, '').replace('\n', '')
                 if '\n' in flag:
-                    flag = flag.replace('\n','')
+                    flag = flag.strip('\n')
                 print "\t\t [*]flag is...", flag
-                if flag:
-                    submit_status = api.sub_answer(flag)
-                    print "\t\t [*]submit status is ", submit_status
-                    if submit_status:
-                        # 提交flag成功
-                        # 设置exprobot的状态
-                        exprobot.stop_exploit()
 
-                        # 设置aflrobot的状态
-                        # 如果是单fuzz 单exploit 在拿到CRASH时，利用之前　AFLROBOT已经停了，不需要stop了
-                        # aflrobot = get_aflrobot_by_id(id, aflrobot_list)
-                        # aflrobot.stop_fuzz()
-
-                        # 设置challenge的状态
-                        challenge = get_challenge_by_id(id, challenge_list)
-                        challenge.set_fuzz_status(False)
-                        challenge.set_exploit_status(False)
-                        challenge.set_submit_status(True)
-
-                else:
-                    print "flag is none!"
             except Exception as e:
                 print "\t\t [*] cannot get flag！"
                 print e
+
+            if flag :
+                submit_status = api.sub_answer(flag)
+                print "\t\t [*]submit status is ", submit_status
+                if submit_status:
+                    # 提交flag成功
+                    # 设置exprobot的状态
+                    exprobot.stop_exploit()
+
+                    # 设置aflrobot的状态
+                    # 如果是单fuzz 单exploit 在拿到CRASH时，利用之前　AFLROBOT已经停了，不需要stop了
+                    # aflrobot = get_aflrobot_by_id(id, aflrobot_list)
+                    # aflrobot.stop_fuzz()
+
+                    # 设置challenge的状态
+                    challenge = get_challenge_by_id(id, challenge_list)
+                    challenge.set_fuzz_status(False)
+                    challenge.set_exploit_status(False)
+                    challenge.set_submit_status(True)
+
+            else:
+                print "flag is none!"
+
         else:
             "[---]exp_flow is the same...."
 
