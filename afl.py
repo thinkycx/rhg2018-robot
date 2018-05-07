@@ -1,14 +1,15 @@
 import subprocess
 import os
 import stat
-import time
+import signal
 import re
+import time
+
 
 """
 author: Dlive
 date  : 2018/05/01
 """
-
 
 """
 Dependency:
@@ -17,10 +18,11 @@ strings binary
 afl with qemu
 """
 
-
 """
 AFL need root privilege to run
 """
+
+
 class AFL(object):
     # path of the binary which is going to be fuzzed
     __binary_path = None
@@ -46,7 +48,7 @@ class AFL(object):
     afl   : path of afl-fuzz binary
     """
 
-    def __init__(self, binary, afl='/root/afl-2.52b/afl-fuzz', debug=False):
+    def __init__(self, binary, afl='/home/afl/afl-2.52b/afl-fuzz', debug=False):
         self.__binary_path = binary
         self.__afl_fuzz_binary_path = afl
         self.__afl_dirname = os.path.dirname(afl)
@@ -103,14 +105,19 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
         if self.__debug:
             print "afl command:", self.__afl_fuzz_binary_path, '-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path, '-m none', '-Q', '--', self.__binary_path
 
-            self.__afl_process = subprocess.Popen([self.__afl_fuzz_binary_path,'-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path, '-m', 'none', '-Q', '--', self.__binary_path ])
+            self.__afl_process = subprocess.Popen(
+                [self.__afl_fuzz_binary_path, '-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path,
+                 '-m', 'none', '-Q', '--', self.__binary_path])
         else:
-            self.__afl_process = subprocess.Popen([self.__afl_fuzz_binary_path,'-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path, '-m', 'none', '-Q', '--', self.__binary_path ], stdout=subprocess.PIPE)
+            self.__afl_process = subprocess.Popen(
+                [self.__afl_fuzz_binary_path, '-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path,
+                 '-m', 'none', '-Q', '--', self.__binary_path], stdout=subprocess.PIPE)
 
     def stop(self):
         if self.is_alive():
             self.__afl_process.kill()
             self.__afl_process.wait()
+            # os.kill(self.__afl_process.pid, signal.SIGKILL)
 
     def is_alive(self):
         return self.__afl_process.poll() is None
@@ -124,6 +131,7 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
             if crash != 'README.txt':
                 crashes.append(os.path.join(crashes_path, crash))
         return crashes
+
 
 def check_docker():
     result = subprocess.check_output('cat /proc/1/sched | head -n 1', shell=True)
@@ -139,7 +147,24 @@ if __name__ == '__main__':
         afl_path = '/root/afl-2.52b/afl-fuzz'
     else:
         afl_path = '/home/thinkycx/fuzz/afl-2.52b/afl-fuzz'
-    max_run_time = 600
+
+    afl = AFL('./challenges/2/bin',afl=afl_path, debug=True)
+    afl.start()
+
+    # import time
+    #
+    # start_time = time.time()
+    #
+    # print "afl log...."
+    # print "time ", time.time() - start_time
+    # print "is_alive", afl.is_alive()
+    # print "afl_crashes", afl.crashes()
+    # time.sleep(20)
+    #
+    # afl.stop()
+    # raw_input('#')
+
+    max_run_time = 60
     for i in range(10000):
         start_time = time.time()
         i = i%9+2
@@ -155,6 +180,7 @@ if __name__ == '__main__':
         print "crashes ", crashes
 
         while True:
+
             if time.time() - start_time >max_run_time:
                 break
 
