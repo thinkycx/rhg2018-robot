@@ -14,9 +14,11 @@ from pwn import *
 import IsInterActive
 
 download_binary_pass = 1
-FUZZ_NUM = 3
-MAX_FUZZ_TIME = 120
-MAX_EXPLOIT_TIME = 240
+FUZZ_NUM = 1
+MAX_FUZZ_TIME = 20
+MAX_FUZZ_TIME_ADD = 10
+MAX_EXPLOIT_TIME = 20
+MAX_EXPLOIT_TIME_ADD = 10
 
 AFL_DEBUG = False
 context.log_level = 'debug'
@@ -173,6 +175,7 @@ class AFLRobot(Robot):
         Robot.__init__(self, challengeID, bin_path)
         self.afl_obj = None
         self.crashes = []
+        self.maxtime = MAX_FUZZ_TIME
 
     def start_fuzz(self):
         """
@@ -209,6 +212,8 @@ class AFLRobot(Robot):
         self.start_time = None
 
         self.afl_obj.stop()
+        sleep(1)
+        self.afl_obj.stop()
 
 
     def get_new_crashes(self):
@@ -227,6 +232,11 @@ class AFLRobot(Robot):
     #     """
     #     pass
 
+    def get_maxtime(self):
+        return self.maxtime
+    def add_maxtime(self, maxtime_add):
+        self.maxtime += maxtime_add
+
 
 class EXPRobot(Robot):
     def __init__(self, challengeID, bin_path):
@@ -234,6 +244,7 @@ class EXPRobot(Robot):
         self.exp_obj = None
         self.crashes = []
         self.expflow = ''
+        self.maxtime = MAX_EXPLOIT_TIME
 
 
     def start_exploit(self, crashes):
@@ -288,6 +299,11 @@ class EXPRobot(Robot):
                 return tmp_expflow
         except Exception as e:
             print e
+    def get_maxtime(self):
+        return self.maxtime
+
+    def add_maxtime(self, maxtime_add):
+        self.maxtime += maxtime_add
 
 
 
@@ -475,10 +491,15 @@ def check_aflrobot_list(aflrobot_list, challenge_list):
     for aflrobot in running_aflrobot_list:
         id = aflrobot.get_id()
         running_time =  aflrobot.get_running_time()
-        if running_time > MAX_FUZZ_TIME:
+        maxtime = aflrobot.get_maxtime()
+        if running_time > maxtime:
             print "\t [*] check_aflrobot_list"
+            print "\t\t [*] aflrobot id -> %d , running_time -> %s , maxtime -> %s" %(id, running_time, maxtime)
 
+            aflrobot.add_maxtime(MAX_EXPLOIT_TIME_ADD)
             aflrobot.stop_fuzz()
+
+
 
 
             challenge = get_challenge_by_id(id, challenge_list)
@@ -550,10 +571,13 @@ def check_exprobot_list(exprobot_list, challenge_list):
     for exprobot in running_exprobot_list:
         id = exprobot.get_id()
         running_time = exprobot.get_running_time()
-        if running_time > MAX_EXPLOIT_TIME:
+        maxtime = exprobot.get_maxtime()
+        if running_time > maxtime:
             print "\t [*] check_exprobot_list"
-            print "\t\t [*] DELETE challenge %d ,running_time is %d" % (id, running_time)
-            # stop this aflrobot
+            print "\t\t [*] DELETE challenge %d ,running_time is %d, maxtime -> %s" % (id, running_time, maxtime)
+            # stop this exprobot ???
+
+            exprobot.add_maxtime(MAX_EXPLOIT_TIME_ADD)
             exprobot.stop_exploit()
 
             challenge = get_challenge_by_id(id, challenge_list)
