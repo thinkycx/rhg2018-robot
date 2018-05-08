@@ -5,6 +5,7 @@ import stat
 import signal
 import re
 import time
+import config
 
 
 """
@@ -145,9 +146,9 @@ def check_docker():
 
 if __name__ == '__main__':
     if check_docker():
-        afl_path = '/root/afl-2.52b/afl-fuzz'
+        afl_path = config.afl_path_docker 
     else:
-        afl_path = '/home/thinkycx/fuzz/afl-2.52b/afl-fuzz'
+        afl_path = config.afl_path_local 
 
     afl = AFL('./challenges/2/bin',afl=afl_path, debug=True)
     afl.start()

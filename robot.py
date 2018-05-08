@@ -16,8 +16,7 @@ download_binary_pass = 1
 
 CHALLENGE_PATH = "challenges/"
 SLEEP_MAIN_SECOND = 5
-FUZZ_NUM = 2
-# EXPLOIT_NUM = 1
+FUZZ_NUM = 4
 MAX_FUZZ_TIME = 120
 MAX_EXPLOIT_TIME = 240
 AFL_DEBUG = False
@@ -175,7 +174,12 @@ class AFLRobot(Robot):
         self.start_time = time.time()
         self.running_count += 1
 
-        self.afl_obj = afl.AFL(binary=self._bin_path, afl=config.AFLPATH, debug=AFL_DEBUG)
+        if afl.check_docker():
+            afl_path = config.afl_path_docker
+        else:
+            afl_path = config.afl_path_local
+
+        self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
         self.afl_obj.start()
         print "\t\t [*] AFLRobot.start_fuzz  challenge %d ,running_count is %d" % (self._challengeID, self.running_count )
 
@@ -393,7 +397,8 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
     :return:
     """
     running_aflrobot_list = get_running_aflrobot_list(aflrobot_list)
-    running_aflrobot_num = len(running_aflrobot_list)
+    running_exprobot_list = get_running_exprobot_list(exprobot_list)
+    running_aflrobot_num = len(running_aflrobot_list ) + len(running_exprobot_list)
 
     if running_aflrobot_num >= FUZZ_NUM:
         id_list = get_id_list_from_aflrobot_list(running_aflrobot_list)
