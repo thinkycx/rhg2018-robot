@@ -11,6 +11,7 @@ import local_server
 import afl
 import config
 from pwn import *
+import IsInterActive
 
 download_binary_pass = 1
 FUZZ_NUM = 3
@@ -41,6 +42,7 @@ class Challenge(object):
         self.bin_path = bin_path
 
         self.priority_mark = 1000
+        self.interactive = None
         self.fuzz_status = False
         self.exploit_status = False
         self.submit_status = False
@@ -62,6 +64,14 @@ class Challenge(object):
 
     def get_priority_mark(self):
         return self.priority_mark
+
+
+    def set_interactive(self, interactive):
+        self.interactive = interactive
+
+
+    def get_interactive(self):
+        return self.interactive
 
     def set_fuzz_status(self, fuzz_status):
         self.fuzz_status = fuzz_status
@@ -178,6 +188,7 @@ class AFLRobot(Robot):
             afl_path = config.afl_path_docker
         else:
             afl_path = config.afl_path_local
+
 
         self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
         self.afl_obj.start()
@@ -437,6 +448,9 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
                 challenge = get_challenge_by_id(max_id, challenge_list)
                 challenge.start_fuzz()
 
+                # todo
+                interactive = challenge.get_interactive()
+
                 # 创建aflrobot
                 aflrobot = get_aflrobot_by_id(max_id, aflrobot_list)
                 aflrobot.start_fuzz()
@@ -513,8 +527,7 @@ def start_new_exprobot(aflrobot_list, exprobot_list, challenge_list):
 
             proc.start()
 
-            # 单crash 单fuzz 单exploit
-            # 停止fuzz
+            # 检测出crash就停止fuzz
             aflrobot.stop_fuzz()
             challenge.set_fuzz_status(False)
 
@@ -645,6 +658,22 @@ def start_robot_server():
     proc.start()
 
 
+def check_interactive(challenge_list):
+    """
+    检测是否是交互式，如果是，后续优先调用符号执行来ｆｕｚｚ
+    :param challenge_list:
+    :return:
+    """
+    for c in challenge_list:
+        bin_path = c.get_bin_path()
+        ret, option = IsInterActive.IsInterActive(bin_path)
+        # print ret, option
+        if ret == True:
+            c.set_interactive(True)
+        elif ret == False:
+            c.set_interactive(False)
+    print "\t[!] check_interactive DONE!"
+
 
 if __name__ == "__main__":
     # 开启　本地服务器
@@ -658,6 +687,7 @@ if __name__ == "__main__":
 
     print "[1] INITIAL...."
     initial_list(challenge_list, aflrobot_list, exprobot_list)
+    check_interactive(challenge_list)
     # todo  send exp_flow if has the same bin
     # todo  modify_challenge_list_mark(challenge_list)
 
