@@ -13,11 +13,13 @@ import config
 from pwn import *
 import IsInterActive
 
+
+
 download_binary_pass = 0
-FUZZ_NUM = 1
-MAX_FUZZ_TIME = 20
+FUZZ_NUM = 30
+MAX_FUZZ_TIME = 600
 MAX_FUZZ_TIME_ADD = 10
-MAX_EXPLOIT_TIME = 20
+MAX_EXPLOIT_TIME = 600
 MAX_EXPLOIT_TIME_ADD = 10
 
 AFL_DEBUG = False
@@ -26,6 +28,12 @@ context.log_level = 'debug'
 FUZZ_MAKR = 1
 SLEEP_MAIN_SECOND = 5
 CHALLENGE_PATH = "challenges/"
+
+TODO_TEST_EXP = 1
+from emulator import *
+# if TODO_TEST_EXP:
+#
+#     from exp_gen import *
 
 
 class Challenge(object):
@@ -224,13 +232,6 @@ class AFLRobot(Robot):
             self.crashes = tmp_crashes
             return self.crashes
 
-    #
-    # def submit_crash(self):
-    #     """
-    #     把crash提交给exploit模块，记录crash hash，每次提交不同的值
-    #     :return:
-    #     """
-    #     pass
 
     def get_maxtime(self):
         return self.maxtime
@@ -264,7 +265,18 @@ class EXPRobot(Robot):
         #
         # # todo exp_obj.start_exploit()
         # self.crashes = crashes
-        time.sleep(1000)
+        if TODO_TEST_EXP:
+            self.running_status = True
+            self.start_time = time.time()
+            self.running_count += 1
+            self.crashes = crashes
+
+            self.exp_obj = Exp_gen(self._bin_path, crashes)
+            self.exp_obj.start()
+
+        else:
+            time.sleep(1000)
+
 
 
     def stop_exploit(self):
@@ -276,8 +288,13 @@ class EXPRobot(Robot):
 
         # todo delete it
         print "\t\t [*] delete proc"
-        proc = self.proc
-        proc.terminate()
+
+        if TODO_TEST_EXP:
+            self.exp_obj.stopExploit()
+
+        else:
+            proc = self.proc
+            proc.terminate()
 
 
     def get_exploit_flow(self):
@@ -286,19 +303,37 @@ class EXPRobot(Robot):
         :return:
         """
         # todo exp_obj.get_exploit_flow()
-        if self._challengeID != 2:
-            return False
-        try:
-            with open("./panda@rhg/input_exp2") as f:
-                tmp_expflow  = f.read()
-            if self.expflow == tmp_expflow:
-                print "\t\t [*]Exprobot.get_exploit_flow  challenge_id -> %d , expflow is same..." % self._challengeID
+        if TODO_TEST_EXP:
+            exp_path_list = self.exp_obj.getExp()
+            if len(exp_path_list) == 0:
+                print "\t\t [E]exp is []..."
                 return False
             else:
-                self.expflow = tmp_expflow
-                return tmp_expflow
-        except Exception as e:
-            print e
+                print "\t\t [E]get %d exp_flow" % len(exp_path_list)
+                exp_flow_list = []
+                for exp_path in exp_path_list:
+                    print "\t\t [E] exp_path is %s" % exp_path
+                    with open(exp_path,'r+') as f :
+                        exp_flow = f.read()
+                    exp_flow_list.append(exp_flow)
+                return exp_flow_list
+
+        else:
+            if self._challengeID != 2:
+                return False
+            try:
+                with open("./panda@rhg/input_exp2") as f:
+                    tmp_expflow  = f.read()
+                if self.expflow == tmp_expflow:
+                    print "\t\t [*]Exprobot.get_exploit_flow  challenge_id -> %d , expflow is same..." % self._challengeID
+                    return False
+                else:
+                    self.expflow = tmp_expflow
+                    return tmp_expflow
+            except Exception as e:
+                print e
+
+
     def get_maxtime(self):
         return self.maxtime
 
@@ -500,8 +535,6 @@ def check_aflrobot_list(aflrobot_list, challenge_list):
             aflrobot.stop_fuzz()
 
 
-
-
             challenge = get_challenge_by_id(id, challenge_list)
             challenge.set_fuzz_status(False)
 
@@ -536,17 +569,20 @@ def start_new_exprobot(aflrobot_list, exprobot_list, challenge_list):
 
             # todo delete process
             # exprobot.start_exploit(crashes)
-            proc = multiprocessing.Process(target=worker_exploit, args=(exprobot, crashes))
-            proc.deamon = True
-            exprobot.set_proc(proc)
+            if TODO_TEST_EXP:
+                exprobot.start_exploit(crashes)
+            else:
+                proc = multiprocessing.Process(target=worker_exploit, args=(exprobot, crashes))
+                proc.deamon = True
+                exprobot.set_proc(proc)
 
-            # 暂时这样修改,原则上在类外面最好不要直接对成员进行修改，整合好exp模块后，删除多进程的方式
-            exprobot.running_status = True
-            exprobot.start_time = time.time()
-            exprobot.running_count += 1
-            exprobot.crashes = crashes
+                # 暂时这样修改,原则上在类外面最好不要直接对成员进行修改，整合好exp模块后，删除多进程的方式
+                exprobot.running_status = True
+                exprobot.start_time = time.time()
+                exprobot.running_count += 1
+                exprobot.crashes = crashes
 
-            proc.start()
+                proc.start()
 
             # 检测出crash就停止fuzz
             aflrobot.stop_fuzz()
@@ -596,73 +632,75 @@ def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
     for exprobot in running_exprobot_list:
     # for exprobot in exprobot_list:
         id = exprobot.get_id()
-        exp_flow = exprobot.get_exploit_flow()
+        exp_flow_list = exprobot.get_exploit_flow()
         # if exprobot.get_id() == 2: # test shellcode
-        if exp_flow :
-            print "\t\t [*] start_new_expflow # challenge_id -> %d , exp_flow ..." % (id)
 
-            challenge = get_challenge_by_id(id, challenge_list)
-            flag_path = challenge.get_flag_path()
-            ip, port = challenge.get_ip_port()
+        if len(exp_flow_list) != 0 :
+            for exp_flow in exp_flow_list:
+                print "\t\t [*] start_new_expflow # challenge_id -> %d , exp_flow ..." % (id)
 
-            print "\t\t [*] flag_path -> %s, ip, port -> %s:%d" % (flag_path, ip, port)
+                challenge = get_challenge_by_id(id, challenge_list)
+                flag_path = challenge.get_flag_path()
+                ip, port = challenge.get_ip_port()
 
-            # try:
-            flag = ''
-            pos1 = "Dubh3-2018a-rhg"
-            pos2 = "Dubh3-2018b-rhg"
-            payload = "cat %s" % flag_path
-            padding = "echo %s&& %s && echo %s"
-            payload = padding % (pos1, payload, pos2)
-            # print "payload", payload
+                print "\t\t [*] flag_path -> %s, ip, port -> %s:%d" % (flag_path, ip, port)
 
-            # print "*" * 10, 'tmp_data', "*" * 10
-            io = remote(ip, port)
+                # try:
+                flag = ''
+                pos1 = "Dubh3-2018a-rhg"
+                pos2 = "Dubh3-2018b-rhg"
+                payload = "cat %s" % flag_path
+                padding = "echo %s&& %s && echo %s"
+                payload = padding % (pos1, payload, pos2)
+                # print "payload", payload
 
-            io.send(exp_flow)
-            tmp_data = io.recv()
-            io.sendline(payload)
+                # print "*" * 10, 'tmp_data', "*" * 10
+                io = remote(ip, port)
 
-            io.recvuntil(pos1)
-            data = io.recvuntil(pos2)
-            flag = data[: -len(pos2)]
+                io.send(exp_flow)
+                tmp_data = io.recv()
+                io.sendline(payload)
 
-            # string = pos1 + "([\s\S]*)" + pos2
-            # pattern = re.compile(string)
-            # result = re.match(pattern, data)
-            # flag = result.string.replace(pos1, '').replace(pos2, '').replace('\n', '')
-            if '\n' in flag:
-                flag = flag.strip('\n')
-            print "\t\t [*]flag is...", flag
+                io.recvuntil(pos1)
+                data = io.recvuntil(pos2)
+                flag = data[: -len(pos2)]
 
-            # except Exception as e:
-            #     print "\t\t [*] cannot get flag！"
-            #     print e
+                # string = pos1 + "([\s\S]*)" + pos2
+                # pattern = re.compile(string)
+                # result = re.match(pattern, data)
+                # flag = result.string.replace(pos1, '').replace(pos2, '').replace('\n', '')
+                if '\n' in flag:
+                    flag = flag.strip('\n')
+                print "\t\t [*]flag is...", flag
 
-            try:
-                if flag :
-                    submit_status = api.sub_answer(flag)
-                    print "\t\t [*]submit status is ", submit_status
-                    if submit_status:
-                        # 提交flag成功
-                        # 设置exprobot的状态
-                        exprobot.stop_exploit()
+                # except Exception as e:
+                #     print "\t\t [*] cannot get flag！"
+                #     print e
 
-                        # 设置aflrobot的状态
-                        # 如果是单fuzz 单exploit 在拿到CRASH时，利用之前　AFLROBOT已经停了，不需要stop了
-                        # aflrobot = get_aflrobot_by_id(id, aflrobot_list)
-                        # aflrobot.stop_fuzz()
+                try:
+                    if flag :
+                        submit_status = api.sub_answer(flag)
+                        print "\t\t [*]submit status is ", submit_status
+                        if submit_status:
+                            # 提交flag成功
+                            # 设置exprobot的状态
+                            exprobot.stop_exploit()
 
-                        # 设置challenge的状态
-                        challenge = get_challenge_by_id(id, challenge_list)
-                        challenge.set_fuzz_status(False)
-                        challenge.set_exploit_status(False)
-                        challenge.set_submit_status(True)
+                            # 设置aflrobot的状态
+                            # 如果是单fuzz 单exploit 在拿到CRASH时，利用之前　AFLROBOT已经停了，不需要stop了
+                            # aflrobot = get_aflrobot_by_id(id, aflrobot_list)
+                            # aflrobot.stop_fuzz()
 
-                else:
-                    print "flag is none!"
-            except Exception as e :
-                print e
+                            # 设置challenge的状态
+                            challenge = get_challenge_by_id(id, challenge_list)
+                            challenge.set_fuzz_status(False)
+                            challenge.set_exploit_status(False)
+                            challenge.set_submit_status(True)
+
+                    else:
+                        print "flag is none!"
+                except Exception as e :
+                    print e
 
         else:
             "[---]exp_flow is the same...."
