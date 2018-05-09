@@ -12,6 +12,8 @@ URL = os.environ.get("URL")
 logging.basicConfig( level=logging.WARN)
 
 afl_path_docker = '/root/rhg2018-robot/afl-2.52b/afl-fuzz'
-afl_path_local = '/home/thinkycx/fuzz/afl-2.52b/afl-fuzz'
+# temporarily fix detech docker problem
+afl_path_local = '/root/rhg2018-robot/afl-2.52b/afl-fuzz'
+# afl_path_local = '/home/thinkycx/fuzz/afl-2.52b/afl-fuzz'
 
 
