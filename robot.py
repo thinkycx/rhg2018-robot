@@ -306,7 +306,7 @@ class EXPRobot(Robot):
             exp_path_list = self.exp_obj.getExp()
             if len(exp_path_list) == 0:
                 print "\t\t [E]exp is []..."
-                return False
+                return exp_path_list
             else:
                 print "\t\t [E]get %d exp_flow" % len(exp_path_list)
                 exp_flow_list = []
@@ -319,14 +319,14 @@ class EXPRobot(Robot):
 
         else:
             if self._challengeID != 2:
-                return False
+                return []
             try:
                 exp_flow_list = []
                 with open("./panda@rhg/input_exp2") as f:
                     tmp_expflow  = f.read()
                 if self.expflow == tmp_expflow:
                     print "\t\t [*]Exprobot.get_exploit_flow  challenge_id -> %d , expflow is same..." % self._challengeID
-                    return False
+                    return []
                 else:
                     self.expflow = tmp_expflow
                     exp_flow_list.append(tmp_expflow)
