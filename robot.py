@@ -197,7 +197,7 @@ class AFLRobot(Robot):
         if afl.check_docker():
             afl_path = config.afl_path_docker
         else:
-            afl_path = config.afl_path_local
+            afl_path = config.afl_path_docker#config.afl_path_local
 
 
         self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
