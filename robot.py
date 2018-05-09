@@ -2,7 +2,6 @@
 # coding=utf-8
 
 import api
-import logging
 import requests
 import time
 import multiprocessing
@@ -16,7 +15,7 @@ import IsInterActive
 
 
 download_binary_pass = 0
-FUZZ_NUM = 30
+FUZZ_NUM = 5
 MAX_FUZZ_TIME = 600
 MAX_FUZZ_TIME_ADD = 10
 MAX_EXPLOIT_TIME = 600
@@ -356,7 +355,7 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
     file_number = 0
 
     for c_d_l in challenge_download_list:
-        logging.info(c_d_l)
+        log.info(c_d_l)
         id = c_d_l['challengeID']
         dir_name = unicode(id) + "/"
         file_name = "bin"
@@ -365,13 +364,13 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
         api.make_folder(target_dir)
         if not download_binary_pass:
             try:
-                logging.info("downloading binary %d" % id)
+                log.info("downloading binary %d" % id)
                 r = requests.get(c_d_l['binaryUrl'], headers = {'User-Agent': 'curl / 7.47.0'}, timeout=100)
                 with open(binary_path, "wb") as f:
                     f.write(r.content)
                 file_number += 1
             except Exception as e:
-                logging.info(unicode(e))
+                log.info(unicode(e))
                 exit(-1)
         else:
             print "\t[!] USE OLD BINARY"

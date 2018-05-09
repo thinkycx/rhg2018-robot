@@ -7,6 +7,9 @@
     export TERM=linux
     export TERMINFO=/etc/terminfo
 5. fuzz部分需要开启debug,需要删除challenges下的文件
+进入challenges目录，运行：
+du -h --max-depth=2 | awk '{print $2}'| grep -E 'in|out|dic' | xargs rm -rf
+
 6.
 
 

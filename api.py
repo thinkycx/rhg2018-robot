@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
-import logging
+from pwn import *
 import config
 import os
 
@@ -23,11 +23,12 @@ headers = {'User-Agent': 'curl / 7.47.0'}
 #
 def get_question_status():
     try:
+        print "\t [*] download from ", GET_QUESTION_STATUS
         r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
         print r.json()
         return r.json()['AiChallenge']
     except Exception as e:
-        logging.error(e)
+        log.info(unicode(e))
         return False
 
 
@@ -74,7 +75,7 @@ def make_folder(target_path):
         if not os.path.exists(target_path):
             os.mkdir(target_path)
     except Exception as e:
-        logging.info(unicode(e))
+        log.info(unicode(e))
         exit(-1)
 
 
