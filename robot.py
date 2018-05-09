@@ -7,13 +7,13 @@ import requests
 import time
 import multiprocessing
 import os
-import local_server
+# import local_server
 import afl
 import config
 from pwn import *
 import IsInterActive
 
-download_binary_pass = 1
+download_binary_pass = 0
 FUZZ_NUM = 1
 MAX_FUZZ_TIME = 20
 MAX_FUZZ_TIME_ADD = 10

@@ -24,6 +24,7 @@ headers = {'User-Agent': 'curl / 7.47.0'}
 def get_question_status():
     try:
         r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
+        print r.json()
         return r.json()['AiChallenge']
     except Exception as e:
         logging.error(e)
