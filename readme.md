@@ -2,12 +2,17 @@
 # 框架运行前注意事项
 1. 设置环境变量　参考env.sh: user pwd URL
 2. URL若为127.0.0.1 需要运行local_server.py 作为本地服务器
-3. AFL module 需要　echo core >/proc/sys/kernel/core_pattern
-4. PYCHARM中运行PWNTOOLS需要设置环境变量
+3. PYCHARM中运行PWNTOOLS需要设置环境变量
     export TERM=linux
     export TERMINFO=/etc/terminfo
-5. fuzz部分需要开启debug,需要删除challenges下的文件
+4.  AFL module 需要　 fuzz部分需要开启debug,需要删除challenges下的文件
 进入challenges目录，运行：
+1.
+echo core >/proc/sys/kernel/core_pattern
+2.
+cd /sys/devices/system/cpu
+echo performance | tee cpu*/cpufreq/scaling_governor
+3.
 du -h --max-depth=2 | awk '{print $2}'| grep -E 'in|out|dic' | xargs rm -rf
 
 6.

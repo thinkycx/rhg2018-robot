@@ -29,7 +29,7 @@ SLEEP_MAIN_SECOND = 5
 CHALLENGE_PATH = "challenges/"
 
 TODO_TEST_EXP = 1
-from emulator import *
+# from emulator import *
 # if TODO_TEST_EXP:
 #
 #     from exp_gen import *
@@ -197,7 +197,7 @@ class AFLRobot(Robot):
         if afl.check_docker():
             afl_path = config.afl_path_docker
         else:
-            afl_path = config.afl_path_docker#config.afl_path_local
+            afl_path = config.afl_path_local # config.afl_path_docker##
 
 
         self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
@@ -321,6 +321,7 @@ class EXPRobot(Robot):
             if self._challengeID != 2:
                 return False
             try:
+                exp_flow_list = []
                 with open("./panda@rhg/input_exp2") as f:
                     tmp_expflow  = f.read()
                 if self.expflow == tmp_expflow:
@@ -328,7 +329,8 @@ class EXPRobot(Robot):
                     return False
                 else:
                     self.expflow = tmp_expflow
-                    return tmp_expflow
+                    exp_flow_list.append(tmp_expflow)
+                    return exp_flow_list
             except Exception as e:
                 print e
 
