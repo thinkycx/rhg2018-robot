@@ -505,7 +505,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
                     has_fuzz = 1
                     break
             if has_fuzz == 0:
-                loggging.warinig("NOTHING TO BE FUZZED!")
+                log.warn("NOTHING TO BE FUZZED!")
                 break
 
             # 取出分数最高的challenge_id
