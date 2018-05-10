@@ -11,6 +11,7 @@ import afl
 import config
 from pwn import *
 import IsInterActive
+from echo579 import *
 
 
 
@@ -751,6 +752,29 @@ def check_interactive(challenge_list):
     print "\t[!] check_interactive DONE!"
 
 
+def check_local_exp(challenge_list):
+    for challenge in challenge_list:
+        print '-----------------------problem %d----------------' % challenge.get_id()
+        binary = challenge.get_bin_path()
+        ip , port= challenge.get_ip_port()
+        path = challenge.get_flag_path()
+        timeout = 5
+        Processor = PreProcessor(binary, ip, port, path, timeout)
+        # _isInterActive, option = Processor.retIsInterActive()
+        flag = Processor.retFlag()
+        if flag == '':
+            log.info("flag is null")
+        else:
+            submit_status = api.sub_answer(flag)
+            print "\t\t [*]submit status is ", submit_status
+            if submit_status:
+                # 设置challenge的状态
+                log.info("challenge is done!!!!!!!!!!!!!!!!!!")
+                challenge.set_submit_status(True)
+
+
+
+
 if __name__ == "__main__":
     # 开启　本地服务器
     # 本地服务器需要手工开启　
@@ -763,7 +787,10 @@ if __name__ == "__main__":
 
     print "[1] INITIAL...."
     initial_list(challenge_list, aflrobot_list, exprobot_list)
+    check_local_exp(challenge_list)
     check_interactive(challenge_list)
+    check_submit_status(challenge_list)
+
     # todo  send exp_flow if has the same bin
     # todo  modify_challenge_list_mark(challenge_list)
 

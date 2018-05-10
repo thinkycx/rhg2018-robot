@@ -44,12 +44,15 @@ DONE -　考虑增加FUZZ和EXP时间？
 - bluecake fuzz
 - echo579 exp module
 - panda check_exploit_status
-- running robot time     - done
+- running robot time     - ADDED
 - submit status restore
 - shutdown exploit log
 - test time to fuzz
 - afl before run check
 - challenge download failure 50 - ask manager  - ADDED
+
+
+
 
 
 
