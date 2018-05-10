@@ -725,6 +725,10 @@ def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
                             challenge.set_fuzz_status(False)
                             challenge.set_exploit_status(False)
                             challenge.set_submit_status(True)
+                            print "\t\t [*] flag is send sleep 4s..."
+                            time.sleep(4)
+
+
 
                     else:
                         print "flag is none!"
