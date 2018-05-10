@@ -387,11 +387,11 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
         api.make_folder(target_dir)
         if not download_binary_pass:
             try:
-                log.warn("downloading binary %d" % id)
+                log.info("downloading binary %d" % id)
                 r = requests.get(c_d_l['binaryUrl'], headers = {'User-Agent': 'curl / 7.47.0'}, timeout=100)
                 # todo challenge check
                 if r.status_code != 200:
-                    log.warn("this binary status_code is not 200!!!!")
+                    log.warn("this %d binary status_code is not 200!!!!",id)
                     continue
                 with open(binary_path, "wb") as f:
                     f.write(r.content)
@@ -737,7 +737,7 @@ def check_submit_status(challenge_list):
         if challenge.get_submit_status() == True :
             done_challenge_list.append(challenge)
     id_list = get_id_list_from_challenge_list(done_challenge_list)
-    print "\t\t [!] challenge done list_id %s" %  id_list
+    print "\t\t [!] check_submit_status challenge done list_id %s" %  id_list
 
 
 def start_robot_server():
