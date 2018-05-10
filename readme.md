@@ -41,9 +41,12 @@ DONE -　考虑增加FUZZ和EXP时间？
 20180510 todolist
 - 看门狗
 -　日志保存
-- bluecake fuzz
-- echo579 exp module
+- bluecake fuzz   DONE!
+- bluecake log
+- echo579 exp module  DONE!
+- module 2
 - panda check_exploit_status
+
 - running robot time     - ADDED
 - submit status restore
 - shutdown exploit log

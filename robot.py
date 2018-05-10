@@ -393,8 +393,10 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
                 if r.status_code != 200:
                     print "this %d binary status_code is not 200!!!!" % id
                     continue
+
                 with open(binary_path, "wb") as f:
                     f.write(r.content)
+                print "download binary %d success" % id
                 file_number += 1
             except Exception as e:
                 log.warn(unicode(e))
