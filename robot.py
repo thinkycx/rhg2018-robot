@@ -354,11 +354,16 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
     print "\t[*] initial_list #1 download challenges..."
     api.make_folder(CHALLENGE_PATH)
     challenge_download_list = api.get_question_status()
-    file_number = 0
+    if challenge_download_list == False:
+        log.warn("challenge_download_list is false . download failed.")
+        exit(-1)
 
+    file_number = 0
     for c_d_l in challenge_download_list:
         log.info(c_d_l)
         id = c_d_l['challengeID']
+        # todo challenge check
+        # if id　>= 11: break
         dir_name = unicode(id) + "/"
         file_name = "bin"
         target_dir = CHALLENGE_PATH + dir_name
@@ -368,6 +373,10 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
             try:
                 log.info("downloading binary %d" % id)
                 r = requests.get(c_d_l['binaryUrl'], headers = {'User-Agent': 'curl / 7.47.0'}, timeout=100)
+                # todo challenge check
+                if r.status_code != 200:
+                    log.warn("this binary status_code is not 200!!!!")
+                    continue
                 with open(binary_path, "wb") as f:
                     f.write(r.content)
                 file_number += 1
