@@ -29,7 +29,7 @@ def get_question_status():
     try:
         print "\t [*] download from ", GET_QUESTION_STATUS
         while True:
-            if LOCAL_API:
+            if LOCAL_API == 1:
                 r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
                 print r.json()
                 if r.json()['status'] == 0:
