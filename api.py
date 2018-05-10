@@ -31,10 +31,10 @@ def get_question_status():
             if LOCAL_API:
                 r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
                 if r.json()['status'] == 0:
-                    log.info( time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) , "waiting to start")
+                    log.warn( time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) , "waiting to start")
                     time.sleep(1)
                 elif r.json()['status'] == 1:
-                    log.info(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "start")
+                    log.warn(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "start")
                     return r.json()['AiChallenge']
 
             else:
@@ -42,7 +42,7 @@ def get_question_status():
                 return r.json()['AiChallenge']
 
     except Exception as e:
-        log.info(unicode(e))
+        log.warn(unicode(e))
         return False
 
 
@@ -89,7 +89,7 @@ def make_folder(target_path):
         if not os.path.exists(target_path):
             os.mkdir(target_path)
     except Exception as e:
-        log.info(unicode(e))
+        log.warn(unicode(e))
         exit(-1)
 
 

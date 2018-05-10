@@ -23,7 +23,7 @@ MAX_EXPLOIT_TIME = 600
 MAX_EXPLOIT_TIME_ADD = 10
 
 AFL_DEBUG = False
-context.log_level = 'INFO'
+context.log_level = 'WARN'
 
 FUZZ_MAKR = 1
 SLEEP_MAIN_SECOND = 5
@@ -376,7 +376,7 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
 
     file_number = 0
     for c_d_l in challenge_download_list:
-        log.info(c_d_l)
+        log.warn(c_d_l)
         id = c_d_l['challengeID']
         # todo challenge check
         # if id　>= 11: break
@@ -387,7 +387,7 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
         api.make_folder(target_dir)
         if not download_binary_pass:
             try:
-                log.info("downloading binary %d" % id)
+                log.warn("downloading binary %d" % id)
                 r = requests.get(c_d_l['binaryUrl'], headers = {'User-Agent': 'curl / 7.47.0'}, timeout=100)
                 # todo challenge check
                 if r.status_code != 200:
@@ -397,7 +397,7 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
                     f.write(r.content)
                 file_number += 1
             except Exception as e:
-                log.info(unicode(e))
+                log.warn(unicode(e))
                 exit(-1)
         else:
             print "\t[!] USE OLD BINARY"
@@ -774,13 +774,13 @@ def check_local_exp(challenge_list):
         # _isInterActive, option = Processor.retIsInterActive()
         flag = Processor.retFlag()
         if flag == '':
-            log.info("flag is null")
+            log.warn("flag is null")
         else:
             submit_status = api.sub_answer(flag)
             print "\t\t [*]submit status is ", submit_status
             if submit_status:
                 # 设置challenge的状态
-                log.info("challenge is done!!!!!!!!!!!!!!!!!!")
+                log.warn("challenge is done!!!!!!!!!!!!!!!!!!")
                 challenge.set_submit_status(True)
 
 
