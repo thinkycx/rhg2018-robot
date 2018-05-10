@@ -5,6 +5,7 @@ import os
 USER = os.environ.get("RHG_USER")
 PWD = os.environ.get("RHG_PWD")
 URL = os.environ.get("URL")
+LOCAL_API = os.environ.get("LOCAL")
 # URL = "http://ai.defcon.ichunqiu.com"
 # URL = "http://127.0.0.1:5000"
 # URL = "http://172.16.4.110"
