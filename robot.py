@@ -30,10 +30,8 @@ SLEEP_MAIN_SECOND = 5
 CHALLENGE_PATH = "challenges/"
 
 TODO_TEST_EXP = 1
-# from emulator import *
-# if TODO_TEST_EXP:
-#
-#     from exp_gen import *
+USE_AFL_FUZZ = 1
+from emulator import *
 
 
 class Challenge(object):
@@ -184,6 +182,7 @@ class AFLRobot(Robot):
         self.afl_obj = None
         self.crashes = []
         self.maxtime = MAX_FUZZ_TIME
+        self.use_afl_fuzz = 0
 
     def start_fuzz(self):
         """
@@ -200,9 +199,13 @@ class AFLRobot(Robot):
         else:
             afl_path = config.afl_path_local # config.afl_path_docker##
 
+        if self.use_afl_fuzz:
+            self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
+            self.afl_obj.start()
+        else:
+            self.afl_obj = SymbolFuzzer(binary=self._bin_path, logv='WARN')
+            self.afl_obj.fuzz()
 
-        self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
-        self.afl_obj.start()
         print "\t\t [A] AFLRobot.start_fuzz  challenge %d ,running_count is %d ,maxtime is %s " % (self._challengeID, self.running_count,self.maxtime )
 
     def stop_fuzz(self):
@@ -218,19 +221,27 @@ class AFLRobot(Robot):
         running_time = time.time() - self.start_time
         # self.total_time += running_time
         self.start_time = None
-
-        self.afl_obj.stop()
-        sleep(1)
-        self.afl_obj.stop()
+        if self.use_afl_fuzz:
+            self.afl_obj.stop()
+            sleep(1)
+            self.afl_obj.stop()
+        else:
+            self.afl_obj.stop()
 
 
     def get_new_crashes(self):
-        tmp_crashes = self.afl_obj.crashes()
+        if self.use_afl_fuzz:
+            tmp_crashes = self.afl_obj.crashes()
+        else:
+            tmp_crashes = self.afl_obj.get_crash()
         if self.crashes == tmp_crashes:
             return False
         else:
             self.crashes = tmp_crashes
             return self.crashes
+
+
+
 
 
     def get_maxtime(self):
@@ -787,7 +798,7 @@ if __name__ == "__main__":
 
     print "[1] INITIAL...."
     initial_list(challenge_list, aflrobot_list, exprobot_list)
-    check_local_exp(challenge_list)
+    #check_local_exp(challenge_list)
     check_interactive(challenge_list)
     check_submit_status(challenge_list)
 
