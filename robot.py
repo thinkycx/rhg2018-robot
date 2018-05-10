@@ -184,7 +184,7 @@ class AFLRobot(Robot):
         self.maxtime = MAX_FUZZ_TIME
         self.use_afl_fuzz = USE_AFL_FUZZ
 
-    def start_fuzz(self):
+    def start_fuzz(self,interactive):
         """
         １．修改状态、开始时间、fuzz次数
         ２．调用fuzz模块开始fuzz
@@ -198,6 +198,15 @@ class AFLRobot(Robot):
             afl_path = config.afl_path_docker
         else:
             afl_path = config.afl_path_local # config.afl_path_docker##
+
+        # check which one to use
+        if interactive == True:
+            self.use_afl_fuzz = False
+        else:
+            self.use_afl_fuzz = True
+
+
+
 
         if self.use_afl_fuzz:
             self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
@@ -239,9 +248,11 @@ class AFLRobot(Robot):
         else:
             self.crashes = tmp_crashes
             return self.crashes
-
-
-
+    def change_next_fuzz_method(self):
+        if self.use_afl_fuzz == True:
+            self.use_afl_fuzz = False
+        else:
+            self.use_afl_fuzz == True
 
 
     def get_maxtime(self):
@@ -536,7 +547,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
 
                 # 创建aflrobot
                 aflrobot = get_aflrobot_by_id(max_id, aflrobot_list)
-                aflrobot.start_fuzz()
+                aflrobot.start_fuzz(interactive)
 
             running_aflrobot_list = get_running_aflrobot_list(aflrobot_list)
             running_exprobot_list = get_running_exprobot_list(exprobot_list)
@@ -547,6 +558,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
 
 def check_aflrobot_list(aflrobot_list, challenge_list):
     """
+    如果当前是afl利用的，执行到这里没有产生CRASH,下一次就用符号执行。
     判断是否有AFLRobot不需要继续运行了
         运行时间超过 > MAX_FUZZ_TIME
 
@@ -565,6 +577,8 @@ def check_aflrobot_list(aflrobot_list, challenge_list):
 
             aflrobot.add_maxtime(MAX_EXPLOIT_TIME_ADD)
             aflrobot.stop_fuzz()
+
+            aflrobot.change_next_fuzz_method()
 
 
             challenge = get_challenge_by_id(id, challenge_list)
