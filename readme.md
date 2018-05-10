@@ -6,16 +6,15 @@
     export TERM=linux
     export TERMINFO=/etc/terminfo
 4.  AFL module 需要　 fuzz部分需要开启debug,需要删除challenges下的文件
-进入challenges目录，运行：
-1.
-echo core >/proc/sys/kernel/core_pattern
-2.
-cd /sys/devices/system/cpu
-echo performance | tee cpu*/cpufreq/scaling_governor
-3.
-du -h --max-depth=2 | awk '{print $2}'| grep -E 'in|out|dic' | xargs rm -rf
+    进入challenges目录，运行：
+    1.
+    echo core >/proc/sys/kernel/core_pattern
+    2.
+    cd /sys/devices/system/cpu
+    echo performance | tee cpu*/cpufreq/scaling_governor
+    3.
+    du -h --max-depth=2 | awk '{print $2}'| grep -E 'in|out|dic' | xargs rm -rf
 
-6.
 
 
 
@@ -38,8 +37,20 @@ du -h --max-depth=2 | awk '{print $2}'| grep -E 'in|out|dic' | xargs rm -rf
 如果打成功，就停止fuzzrobot和exprobot,实际上已经停止了？不需要停止了吧？
 
 如果没有产生crash、expflow,超过一定时间就杀掉fuzzrobot和exprobot。
--　考虑增加FUZZ和EXP时间？
--
+DONE -　考虑增加FUZZ和EXP时间？
+20180510 todolist
+- 看门狗
+-　日志保存
+- bluecake fuzz
+- echo579 exp module
+- panda check_exploit_status
+- running robot time     - done
+- submit status restore
+- shutdown exploit log
+- test time to fuzz
+- afl before run check
+- challenge download failure 50 - ask manager  - ADDED
+
 
 
 题目获取模块：

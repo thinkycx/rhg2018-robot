@@ -126,7 +126,7 @@ class Robot(object):
 
         self.running_status =  False           # 运行的状态
         self.start_time = None                 # 本次开始运行的时间
-        self.total_time = 0                    # 总共运行的时间
+        # self.total_time = 0                    # 总共运行的时间
         self.running_count = 0                 # 总共运行的次数
         self.proc = None
         # self.pid = None
@@ -202,7 +202,7 @@ class AFLRobot(Robot):
 
         self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
         self.afl_obj.start()
-        print "\t\t [A] AFLRobot.start_fuzz  challenge %d ,running_count is %d" % (self._challengeID, self.running_count )
+        print "\t\t [A] AFLRobot.start_fuzz  challenge %d ,running_count is %d ,maxtime is %s " % (self._challengeID, self.running_count,self.maxtime )
 
     def stop_fuzz(self):
         """
@@ -215,7 +215,7 @@ class AFLRobot(Robot):
 
         self.running_status = False
         running_time = time.time() - self.start_time
-        self.total_time += running_time
+        # self.total_time += running_time
         self.start_time = None
 
         self.afl_obj.stop()
@@ -272,6 +272,8 @@ class EXPRobot(Robot):
 
             self.exp_obj = Exp_gen(self._bin_path, crashes)
             self.exp_obj.start()
+            print "\t\t [A] EXPRobot.start_exploit  challenge %d ,running_count is %d ,maxtime is %s " % (self._challengeID, self.running_count, self.maxtime)
+
 
         else:
             time.sleep(1000)
@@ -281,12 +283,14 @@ class EXPRobot(Robot):
     def stop_exploit(self):
         print "\t\t [*] EXPRobot.stop_exploit..."
         self.running_status = False
-        # running_time = time.time() - self.start_time
+        running_time = time.time() - self.start_time
+        print "\t\t [A] EXPRobot.stop_exploit  challenge %d ,running_time is %s" % (self._challengeID, running_time)
         # self.total_time +=  running_time
         self.start_time = None
 
         # todo delete it
         print "\t\t [*] delete proc"
+
 
         if TODO_TEST_EXP:
             self.exp_obj.stopExploit()
