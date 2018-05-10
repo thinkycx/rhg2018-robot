@@ -203,7 +203,7 @@ class AFLRobot(Robot):
             self.afl_obj = afl.AFL(binary=self._bin_path, afl=afl_path, debug=AFL_DEBUG)
             self.afl_obj.start()
         else:
-            self.afl_obj = SymbolFuzzer(binary=self._bin_path, logv='WARN')
+            self.afl_obj = SymbolFuzzer(self._bin_path, logv='WARN')
             self.afl_obj.fuzz()
 
         print "\t\t [A] AFLRobot.start_fuzz  challenge %d ,running_count is %d ,maxtime is %s " % (self._challengeID, self.running_count,self.maxtime )

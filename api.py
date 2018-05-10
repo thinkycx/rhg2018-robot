@@ -5,6 +5,7 @@ import requests
 from pwn import *
 import config
 import os
+import time
 
 
 USER = config.USER
@@ -24,9 +25,14 @@ headers = {'User-Agent': 'curl / 7.47.0'}
 def get_question_status():
     try:
         print "\t [*] download from ", GET_QUESTION_STATUS
-        r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
-        print r.json()
-        return r.json()['AiChallenge']
+        while True:
+            r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
+            if 'status' in r.json():
+                print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) , "waiting to start"
+                time.sleep(1)
+            elif 'AiChallenge' in r.json():
+                return r.json()['AiChallenge']
+
     except Exception as e:
         log.info(unicode(e))
         return False
