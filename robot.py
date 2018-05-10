@@ -782,8 +782,9 @@ def check_local_exp(challenge_list):
             print "\t\t [*]submit status is ", submit_status
             if submit_status:
                 # 设置challenge的状态
-                log.warn("challenge is done!!!!!!!!!!!!!!!!!!")
+                log.warn("challenge is done!!!!!!!!!!!!!!!!!!...sleep 3")
                 challenge.set_submit_status(True)
+                time.sleep(3)
 
 
 
@@ -800,7 +801,7 @@ if __name__ == "__main__":
 
     print "[1] INITIAL...."
     initial_list(challenge_list, aflrobot_list, exprobot_list)
-    #check_local_exp(challenge_list)
+    check_local_exp(challenge_list)
     check_interactive(challenge_list)
     check_submit_status(challenge_list)
 
