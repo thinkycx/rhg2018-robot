@@ -20,6 +20,7 @@ class PreProcessor(object):
 		self.port = port
 		self.msg = 'cat '+path
 		self.timeout = timeout
+		os.system('chmod +x '+binary)
 		os.system('echo flag{123}>%s'%path)
 		self.IsInterActive()
 		self.ApplyExp()
