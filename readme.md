@@ -46,9 +46,9 @@ DONE -　考虑增加FUZZ和EXP时间？
 - echo579 exp module  DONE!
 - module 2        DONE!
 - shutdown exploit log DONE
-- running robot time     - ADDED
+- running robot time  - ADDED
 
-- panda check_exploit_status
+- panda check_exploit_status DONE! - HAVENT TEST
 - submit status restore
 
 - afl before run check

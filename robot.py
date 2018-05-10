@@ -30,7 +30,7 @@ SLEEP_MAIN_SECOND = 5
 CHALLENGE_PATH = "challenges/"
 
 TODO_TEST_EXP = 1
-USE_AFL_FUZZ = 1
+USE_AFL_FUZZ = 0
 from emulator import *
 
 
@@ -182,7 +182,7 @@ class AFLRobot(Robot):
         self.afl_obj = None
         self.crashes = []
         self.maxtime = MAX_FUZZ_TIME
-        self.use_afl_fuzz = 0
+        self.use_afl_fuzz = USE_AFL_FUZZ
 
     def start_fuzz(self):
         """
@@ -292,7 +292,11 @@ class EXPRobot(Robot):
 
 
 
-    def stop_exploit(self):
+    def checkFinished(self):
+        return self.exp_obj.checkFinished()
+
+
+    def stop_exploit(self, kill=False):
         print "\t\t [*] EXPRobot.stop_exploit..."
         self.running_status = False
         running_time = time.time() - self.start_time
@@ -301,11 +305,10 @@ class EXPRobot(Robot):
         self.start_time = None
 
         # todo delete it
-        print "\t\t [*] delete proc"
-
 
         if TODO_TEST_EXP:
-            self.exp_obj.stopExploit()
+            if kill:
+                self.exp_obj.stopExploit()
 
         else:
             proc = self.proc
@@ -644,7 +647,7 @@ def check_exprobot_list(exprobot_list, challenge_list):
             # stop this exprobot ???
 
             exprobot.add_maxtime(MAX_EXPLOIT_TIME_ADD)
-            exprobot.stop_exploit()
+            exprobot.stop_exploit(kill=True)
 
             challenge = get_challenge_by_id(id, challenge_list)
             challenge.set_exploit_status(False)
@@ -724,7 +727,7 @@ def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
                         if submit_status:
                             # 提交flag成功
                             # 设置exprobot的状态
-                            exprobot.stop_exploit()
+                            exprobot.stop_exploit(kill=True)
 
                             # 设置aflrobot的状态
                             # 如果是单fuzz 单exploit 在拿到CRASH时，利用之前　AFLROBOT已经停了，不需要stop了
