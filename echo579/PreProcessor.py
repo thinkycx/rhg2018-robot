@@ -6,11 +6,12 @@ import re
 import os
 import sys
 import threading
-import pwn_2,pwn_3,pwn_4,pwn_5,pwn_6,pwn_7,pwn_8,pwn_9,pwn_10
+import pwn_1,pwn_2,pwn_3,pwn_4,pwn_5,pwn_6,pwn_7,pwn_8,pwn_9,pwn_10
 
 class PreProcessor(object):
 
-	def __init__(self,binary,ip,port,path,timeout=5):
+	def __init__(self,binary,ip,port,path,timeout=2,repeat=2):
+		self.repeat = repeat
 		self.binary = binary
 		self._isInterActive = False
 		self.option = []
@@ -18,7 +19,7 @@ class PreProcessor(object):
 		self.ip = ip
 		self.port = port
 		self.msg = 'cat '+path
-		self.timeout = 5
+		self.timeout = timeout
 		os.system('echo flag{123}>%s'%path)
 		self.IsInterActive()
 		self.ApplyExp()
@@ -30,9 +31,6 @@ class PreProcessor(object):
 		fp = os.popen('strings '+self.binary,'rb')
 		content = fp.read()
 		res = re.findall(pattern,content)
-
-		for i in res:
-			print i
 
 		count = 0
 		tmp = 0	
@@ -63,16 +61,22 @@ class PreProcessor(object):
 		exec('flag = pwn_%d.exp(1,"%s","%s")'%(i,self.binary,self.msg))
 		if 'flag' in flag:
 			try:
-				exec('flag = pwn_%d.exp(0,"%s","%s","%s",%d,%d)'%(i,self.binary,self.msg,self.ip,self.port,self.timeout))
-				# print flag
-				if 'flag' in flag:
-					self.flag = flag
+				#print 'script',i,'local success'
+				for j in range(self.repeat):
+					#print 'script repeat',j
+					exec('flag = pwn_%d.exp(0,"%s","%s","%s",%d,%d)'%(i,self.binary,self.msg,self.ip,self.port,self.timeout))
+					#print 'remote',flag
+					if 'flag' in flag:
+						#print 'script',i,'remote success'
+						self.flag = flag[flag.index('flag'):]
+						return
 			except:
+				#print 'script',i,'remote failed'
 				pass
 
 	def ApplyExp(self):
 		thread_list = []
-		for i in range(2,11):
+		for i in range(1,11):
 			t = threading.Thread(target=self.worker,args=(i,))
 			thread_list.append(t)
 
@@ -81,7 +85,7 @@ class PreProcessor(object):
 			t.start()
 
 		for t in thread_list:
-			t.join()
+			t.join(timeout=self.timeout*self.repeat)
 
 	def retIsInterActive(self):
 		return self._isInterActive,self.option
@@ -90,14 +94,15 @@ class PreProcessor(object):
 		return self.flag
 
 def test():
-	for i in range(2,11):
+	for i in range(1,11):
 		print '-----------------------problem %d----------------' %i
-		binary = '/home/echo/ctf/rhg/string/bin%d'%i
+		binary = '/home/echo/ctf/rhg/strings/bin%d'%i
 		ip = '127.0.0.1'
 		port = 1210
 		path = '/home/echo/flag'
-		timeout = 5
-		Processor = PreProcessor(binary,ip,port,path,timeout)
+		timeout = 2
+		repeat = 2
+		Processor = PreProcessor(binary,ip,port,path,timeout,repeat)
 		_isInterActive,option = Processor.retIsInterActive()
 		flag = Processor.retFlag()
 		print flag
