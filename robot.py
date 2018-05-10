@@ -16,13 +16,13 @@ import json
 
 
 
-download_binary_pass = 1 # todo set  0
-FUZZ_NUM = 5
-MAX_FUZZ_TIME = 600
+download_binary_pass = 0 # todo set  0
+FUZZ_NUM = 25
+MAX_FUZZ_TIME = 3600*3
 MAX_FUZZ_TIME_ADD = 10
-MAX_EXPLOIT_TIME = 600
+MAX_EXPLOIT_TIME = 3600*4
 MAX_EXPLOIT_TIME_ADD = 10
-USE_LOCAL_EXP = 0                # todo set 1
+USE_LOCAL_EXP = 1                # todo set 1
 
 
 AFL_DEBUG = False
@@ -516,7 +516,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
         id_list = get_id_list_from_aflrobot_list(running_aflrobot_list)
         print "\t\t [!] running_aflrobot_number -> %d , running_aflrobot_list id ->  %s" % (len(running_aflrobot_list), id_list)
     else:
-
+        # print "-start"*100
         while running_allrobot_number < FUZZ_NUM:
             # 是否还有未FUZZ的CHALLENGE
             has_fuzz = 0
@@ -532,7 +532,7 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
             max_id, max = -1, -10000000000
             for challenge in challenge_list:
                 # 取出尚未FUZZ的challenge
-                if challenge.get_submit_status() == True | challenge.get_fuzz_status() == True:
+                if (challenge.get_submit_status() == True) or (challenge.get_fuzz_status() == True):
                     continue
                 temp = challenge.get_priority_mark()
                 if temp > max:
@@ -545,7 +545,12 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
                 # 修改challenge
                 print "\t\t" + "*" * 100
                 challenge = get_challenge_by_id(max_id, challenge_list)
+                # log.warn(max_id)
+                # log.warn(unicode(challenge.get_fuzz_status()))
+
                 challenge.start_fuzz()
+
+                sleep(0.1)
 
                 # todo
                 interactive = challenge.get_interactive()
@@ -553,13 +558,15 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
                 # 创建aflrobot
                 aflrobot = get_aflrobot_by_id(max_id, aflrobot_list)
                 aflrobot.start_fuzz(interactive)
+            else:
+                break
 
             running_aflrobot_list = get_running_aflrobot_list(aflrobot_list)
             running_exprobot_list = get_running_exprobot_list(exprobot_list)
             running_allrobot_number = len(running_aflrobot_list) + len(running_exprobot_list)
             id_list = get_id_list_from_aflrobot_list(running_aflrobot_list)
             print "\t\t [!] running_aflrobot_number > %d , running_AFLRobot_list >  %s" % (len(running_aflrobot_list), id_list)
-
+        # print "end-"*100
 
 def check_aflrobot_list(aflrobot_list, challenge_list):
     """
