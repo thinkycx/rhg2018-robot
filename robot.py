@@ -23,7 +23,7 @@ MAX_EXPLOIT_TIME = 600
 MAX_EXPLOIT_TIME_ADD = 10
 
 AFL_DEBUG = False
-context.log_level = 'debug'
+context.log_level = 'INFO'
 
 FUZZ_MAKR = 1
 SLEEP_MAIN_SECOND = 5

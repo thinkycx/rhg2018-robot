@@ -10,12 +10,14 @@ import time
 
 USER = config.USER
 PWD  = config.PWD
+LOCAL_API = config.LOCAL_API
 
 URL = config.URL
 GET_QUESTION_STATUS = URL + "/api/get_question_status"
 GET_MACHINES_INFO = URL + "/api/get_machines_info"
 RESET_QUESTION = URL + "/api/reset_question"
 SUB_ANSWER = URL + "/api/sub_answer"
+
 
 headers = {'User-Agent': 'curl / 7.47.0'}
 
@@ -26,11 +28,17 @@ def get_question_status():
     try:
         print "\t [*] download from ", GET_QUESTION_STATUS
         while True:
-            r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
-            if 'status' in r.json():
-                print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) , "waiting to start"
-                time.sleep(1)
-            elif 'AiChallenge' in r.json():
+            if LOCAL_API:
+                r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
+                if r.json()['status'] == 0:
+                    log.info( time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) , "waiting to start")
+                    time.sleep(1)
+                elif r.json()['status'] == 1:
+                    log.info(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "start")
+                    return r.json()['AiChallenge']
+
+            else:
+                r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
                 return r.json()['AiChallenge']
 
     except Exception as e:
