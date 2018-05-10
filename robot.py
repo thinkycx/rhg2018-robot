@@ -497,9 +497,10 @@ def start_new_aflrobot(aflrobot_list, challenge_list):
         id_list = get_id_list_from_aflrobot_list(running_aflrobot_list)
         print "\t\t [!] running_aflrobot_number -> %d , running_aflrobot_list id ->  %s" % (len(running_aflrobot_list), id_list)
     else:
-        has_fuzz = 0
+
         while running_allrobot_number < FUZZ_NUM:
             # 是否还有未FUZZ的CHALLENGE
+            has_fuzz = 0
             for challenge in challenge_list:
                 if challenge.get_submit_status() == False & challenge.get_fuzz_status() == False:
                     has_fuzz = 1

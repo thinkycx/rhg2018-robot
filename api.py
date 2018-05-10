@@ -19,6 +19,7 @@ RESET_QUESTION = URL + "/api/reset_question"
 SUB_ANSWER = URL + "/api/sub_answer"
 
 
+
 headers = {'User-Agent': 'curl / 7.47.0'}
 
 #,
@@ -30,11 +31,12 @@ def get_question_status():
         while True:
             if LOCAL_API:
                 r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
+                print r.json()
                 if r.json()['status'] == 0:
-                    log.warn( time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) , "waiting to start")
-                    time.sleep(1)
+                    log.warn( unicode(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))  +  "waiting to start")
+                    time.sleep(4)
                 elif r.json()['status'] == 1:
-                    log.info(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "start")
+                    log.info( unicode(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) +  "start")
                     return r.json()['AiChallenge']
 
             else:
@@ -42,8 +44,9 @@ def get_question_status():
                 return r.json()['AiChallenge']
 
     except Exception as e:
-        log.warn(unicode(e))
-        return False
+       log.warn(unicode(e))
+       return False
+
 
 
 def get_machines_info():
