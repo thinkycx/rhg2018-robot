@@ -14,14 +14,16 @@ import IsInterActive
 from echo579 import *
 import json
 
-# todo  start check_local_exp(challenge_list)
 
-download_binary_pass = 0
+
+download_binary_pass = 1 # todo set  0
 FUZZ_NUM = 5
 MAX_FUZZ_TIME = 600
 MAX_FUZZ_TIME_ADD = 10
 MAX_EXPLOIT_TIME = 600
 MAX_EXPLOIT_TIME_ADD = 10
+USE_LOCAL_EXP = 0                # todo set 1
+
 
 AFL_DEBUG = False
 context.log_level = 'WARN'
@@ -851,9 +853,15 @@ def check_submit_log(challenge_list):
                     challenge = get_challenge_by_id(int(id), challenge_list)
                     challenge.set_submit_status(True)
             else:
-                check_local_exp(challenge_list)
+                if USE_LOCAL_EXP:
+                    check_local_exp(challenge_list)
+                else:
+                    pass
     else:
-        check_local_exp(challenge_list)
+        if USE_LOCAL_EXP:
+            check_local_exp(challenge_list)
+        else:
+            pass
 
 
 
