@@ -34,7 +34,7 @@ def get_question_status():
                     log.warn( time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) , "waiting to start")
                     time.sleep(1)
                 elif r.json()['status'] == 1:
-                    log.warn(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "start")
+                    log.info(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "start")
                     return r.json()['AiChallenge']
 
             else:

@@ -376,7 +376,7 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
 
     file_number = 0
     for c_d_l in challenge_download_list:
-        log.warn(c_d_l)
+        log.info(c_d_l)
         id = c_d_l['challengeID']
         # todo challenge check
         # if id　>= 11: break
@@ -391,7 +391,7 @@ def initial_list(challenge_list, aflrobot_list, exprobot_list):
                 r = requests.get(c_d_l['binaryUrl'], headers = {'User-Agent': 'curl / 7.47.0'}, timeout=100)
                 # todo challenge check
                 if r.status_code != 200:
-                    log.warn("this %d binary status_code is not 200!!!!",id)
+                    print "this %d binary status_code is not 200!!!!" % id
                     continue
                 with open(binary_path, "wb") as f:
                     f.write(r.content)
