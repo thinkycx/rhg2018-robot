@@ -13,7 +13,7 @@ from pwn import *
 import IsInterActive
 from echo579 import *
 
-
+# todo  start check_local_exp(challenge_list)
 
 download_binary_pass = 0
 FUZZ_NUM = 5
@@ -627,7 +627,8 @@ def start_new_exprobot(aflrobot_list, exprobot_list, challenge_list):
 
 def check_exprobot_list(exprobot_list, challenge_list):
     """
-    检查exprobot是否超时，如果超时就杀掉
+    1. 检查exprobot是否超时，如果超时就杀掉
+    2. 检查exprobot是否结束，如果结束就杀掉
     :param exprobot_list:
     :param challenge_list:
     :return:
@@ -638,7 +639,7 @@ def check_exprobot_list(exprobot_list, challenge_list):
         running_time = exprobot.get_running_time()
         maxtime = exprobot.get_maxtime()
         if running_time > maxtime:
-            print "\t [*] check_exprobot_list"
+            print "\t [*] check_exprobot_list maxtime "
             print "\t\t [*] DELETE challenge %d ,running_time is %d, maxtime -> %s" % (id, running_time, maxtime)
             # stop this exprobot ???
 
@@ -647,6 +648,16 @@ def check_exprobot_list(exprobot_list, challenge_list):
 
             challenge = get_challenge_by_id(id, challenge_list)
             challenge.set_exploit_status(False)
+
+        if exprobot.checkFinished() == True:
+            print "\t [*] check_exprobot_list finished? "
+            print "\t\t [*] DELETE challenge %d ,running_time is %d, maxtime -> %s" % (id, running_time, maxtime)
+
+            exprobot.stop_exploit()
+
+            challenge = get_challenge_by_id(id, challenge_list)
+            challenge.set_exploit_status(False)
+
 
 
 def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
@@ -806,7 +817,7 @@ if __name__ == "__main__":
 
     print "[1] INITIAL...."
     initial_list(challenge_list, aflrobot_list, exprobot_list)
-    check_local_exp(challenge_list)
+    # check_local_exp(challenge_list)
     check_interactive(challenge_list)
     check_submit_status(challenge_list)
 

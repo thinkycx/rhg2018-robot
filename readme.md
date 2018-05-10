@@ -42,17 +42,18 @@ DONE -　考虑增加FUZZ和EXP时间？
 - 看门狗
 -　日志保存
 - bluecake fuzz   DONE!
-- bluecake log
+- bluecake log    DONE!
 - echo579 exp module  DONE!
-- module 2
-- panda check_exploit_status
-
+- module 2        DONE!
+- shutdown exploit log DONE
 - running robot time     - ADDED
+
+- panda check_exploit_status
 - submit status restore
-- shutdown exploit log
-- test time to fuzz
+
 - afl before run check
 - challenge download failure 50 - ask manager  - ADDED
+- test time to fuzz
 
 
 
