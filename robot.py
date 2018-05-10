@@ -12,6 +12,7 @@ import config
 from pwn import *
 import IsInterActive
 from echo579 import *
+import json
 
 # todo  start check_local_exp(challenge_list)
 
@@ -770,10 +771,23 @@ def start_new_expflow(exprobot_list, challenge_list, aflrobot_list):
 
 def check_submit_status(challenge_list):
     done_challenge_list = []
+    submit_json = {}
+
     for challenge in challenge_list:
         if challenge.get_submit_status() == True :
             done_challenge_list.append(challenge)
+
+            id = challenge.get_id()
+            submit_json[str(id)] = 1
     id_list = get_id_list_from_challenge_list(done_challenge_list)
+    # 保存题目的submit status状态。
+    with open("submit_log.txt",'w+') as f :
+        f.write(json.dumps(submit_json))
+
+
+
+
+
     print "\t\t [!] check_submit_status challenge done list_id %s" %  id_list
 
 
@@ -822,6 +836,27 @@ def check_local_exp(challenge_list):
                 time.sleep(3)
 
 
+def check_submit_log(challenge_list):
+    """
+    如果存在文件，从文件中恢复，设置题目的状态为True
+    :param challenge_list:
+    :return:
+    """
+    if os.path.exists("submit_log.txt"):
+        with open("submit_log.txt",'r+') as f:
+            data = f.read()
+            if '{' in data and '}' in data:
+                submit_challenge_dict = json.loads(data)
+                for id in submit_challenge_dict:
+                    challenge = get_challenge_by_id(int(id), challenge_list)
+                    challenge.set_submit_status(True)
+            else:
+                check_local_exp(challenge_list)
+    else:
+        check_local_exp(challenge_list)
+
+
+
 
 
 if __name__ == "__main__":
@@ -836,7 +871,8 @@ if __name__ == "__main__":
 
     print "[1] INITIAL...."
     initial_list(challenge_list, aflrobot_list, exprobot_list)
-    # check_local_exp(challenge_list)
+    check_submit_log(challenge_list)
+
     check_interactive(challenge_list)
     check_submit_status(challenge_list)
 
