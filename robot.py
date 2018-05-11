@@ -257,7 +257,7 @@ class AFLRobot(Robot):
         if self.use_afl_fuzz == True:
             self.use_afl_fuzz = False
         else:
-            self.use_afl_fuzz == True
+            self.use_afl_fuzz == False
 
 
     def get_maxtime(self):
